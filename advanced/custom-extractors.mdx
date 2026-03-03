@@ -1,0 +1,436 @@
+---
+title: Creating Custom Extractors
+description: Learn how to create custom extractors for yt-dlp
+---
+
+Custom extractors allow you to add support for new websites or modify existing extractors in yt-dlp.
+
+## Extractor Basics
+
+Extractors are classes that inherit from `InfoExtractor` and implement the `_real_extract` method to extract video information from URLs.
+
+### Minimal Extractor Example
+
+```python
+from yt_dlp.extractor.common import InfoExtractor
+
+class MyExtractorIE(InfoExtractor):
+    _VALID_URL = r'https?://(?:www\.)?example\.com/watch\?v=(?P<id>[0-9]+)'
+    
+    def _real_extract(self, url):
+        video_id = self._match_id(url)
+        webpage = self._download_webpage(url, video_id)
+        
+        return {
+            'id': video_id,
+            'title': self._html_search_regex(r'<title>(.+?)</title>', webpage, 'title'),
+            'url': self._html_search_regex(r'"video_url":"(.+?)"', webpage, 'video url'),
+        }
+```
+
+## Required Fields
+
+Every extractor must define:
+
+### Class Attributes
+
+<ParamField path="IE_NAME" type="string" required>
+  Internal name for the extractor (auto-generated from class name if not provided)
+</ParamField>
+
+<ParamField path="_VALID_URL" type="regex" required>
+  Regular expression matching the URLs this extractor can handle
+</ParamField>
+
+### Return Dictionary
+
+The `_real_extract` method must return a dictionary with at least:
+
+<ParamField path="id" type="string" required>
+  Unique video identifier
+</ParamField>
+
+<ParamField path="title" type="string" required>
+  Video title (use empty string if unavailable, not None)
+</ParamField>
+
+<ParamField path="url" type="string">
+  Direct video URL (required if `formats` not provided)
+</ParamField>
+
+<ParamField path="formats" type="array">
+  List of format dictionaries (required if `url` not provided)
+</ParamField>
+
+## InfoExtractor Base Class
+
+From `yt_dlp/extractor/common.py:107-116`:
+
+```python
+class InfoExtractor:
+    """Information Extractor class.
+
+    Information extractors are the classes that, given a URL, extract
+    information about the video (or videos) the URL refers to. This
+    information includes the real video URL, the video title, author and
+    others. The information is stored in a dictionary which is then
+    passed to the YoutubeDL. The YoutubeDL processes this
+    information possibly downloading the video to the file system, among
+    other possible outcomes.
+```
+
+## Common Metadata Fields
+
+### Basic Information
+
+```python
+return {
+    'id': video_id,                           # Required
+    'title': 'Video Title',                   # Required
+    'display_id': 'video-slug',              # Alternative identifier
+    'url': 'https://example.com/video.mp4',  # Direct URL or...
+    'formats': [...],                         # ...list of formats
+    'ext': 'mp4',                            # File extension
+    'description': 'Video description',
+    'thumbnail': 'https://example.com/thumb.jpg',
+    'duration': 180,                          # In seconds
+    'upload_date': '20240101',               # YYYYMMDD format
+    'uploader': 'Channel Name',
+    'uploader_id': 'channel123',
+    'uploader_url': 'https://example.com/channel',
+}
+```
+
+### Format Dictionaries
+
+When providing multiple formats:
+
+```python
+'formats': [{
+    'format_id': 'hls-720p',
+    'url': 'https://example.com/video_720p.m3u8',
+    'ext': 'mp4',
+    'width': 1280,
+    'height': 720,
+    'fps': 30,
+    'vcodec': 'h264',
+    'acodec': 'aac',
+    'vbr': 2500,  # Video bitrate in kbps
+    'abr': 128,   # Audio bitrate in kbps
+    'protocol': 'm3u8',
+    'preference': 1,  # Higher is better
+}, {
+    'format_id': 'hls-1080p',
+    'url': 'https://example.com/video_1080p.m3u8',
+    'width': 1920,
+    'height': 1080,
+    'preference': 2,
+}]
+```
+
+### Additional Metadata
+
+```python
+return {
+    # ... basic fields ...
+    
+    # Engagement
+    'view_count': 1000000,
+    'like_count': 50000,
+    'dislike_count': 1000,
+    'comment_count': 5000,
+    
+    # Channel/Series info
+    'channel': 'Channel Name',
+    'channel_id': 'UC1234567890',
+    'channel_url': 'https://example.com/channel/UC1234567890',
+    
+    # Episode info (if applicable)
+    'series': 'Series Name',
+    'season_number': 1,
+    'episode_number': 5,
+    'episode': 'Episode Title',
+    
+    # Subtitles
+    'subtitles': {
+        'en': [{'url': 'https://example.com/en.vtt', 'ext': 'vtt'}],
+        'es': [{'url': 'https://example.com/es.vtt', 'ext': 'vtt'}],
+    },
+    
+    # Live status
+    'is_live': False,
+    'was_live': False,
+}
+```
+
+## Helpful InfoExtractor Methods
+
+### Downloading Content
+
+```python
+# Download and return webpage content
+webpage = self._download_webpage(url, video_id)
+
+# Download JSON data
+data = self._download_json(url, video_id)
+
+# Download XML data
+xml_doc = self._download_xml(url, video_id)
+```
+
+### Extracting Data
+
+```python
+# Extract with regular expressions
+title = self._html_search_regex(
+    r'<title>(.+?)</title>',
+    webpage,
+    'title',
+    default=None  # Return None instead of raising error
+)
+
+# Extract from JSON-LD
+info = self._search_json_ld(webpage, video_id)
+
+# Extract from meta tags
+title = self._og_search_title(webpage)
+description = self._og_search_description(webpage)
+thumbnail = self._og_search_thumbnail(webpage)
+
+# Parse JSON from webpage
+data = self._search_json(
+    r'var\s+config\s*=',
+    webpage,
+    'config',
+    video_id
+)
+```
+
+### URL Handling
+
+```python
+# Extract video ID from URL
+video_id = self._match_id(url)
+
+# Get matched groups from _VALID_URL
+mobj = self._match_valid_url(url)
+video_id = mobj.group('id')
+
+# Join URLs
+full_url = urljoin(base_url, relative_url)
+```
+
+## Advanced Features
+
+### Handling Multiple Videos (Playlists)
+
+```python
+def _real_extract(self, url):
+    playlist_id = self._match_id(url)
+    webpage = self._download_webpage(url, playlist_id)
+    
+    entries = [
+        self.url_result(video_url, ie=MyExtractorIE.ie_key())
+        for video_url in re.findall(r'href="(/video/\d+)"', webpage)
+    ]
+    
+    return self.playlist_result(
+        entries,
+        playlist_id=playlist_id,
+        playlist_title='Playlist Title'
+    )
+```
+
+### Extracting HLS/DASH Formats
+
+```python
+# Extract M3U8 formats
+formats = self._extract_m3u8_formats(
+    m3u8_url,
+    video_id,
+    ext='mp4',
+    m3u8_id='hls'
+)
+
+# Extract MPD (DASH) formats
+formats = self._extract_mpd_formats(
+    mpd_url,
+    video_id,
+    mpd_id='dash'
+)
+
+# Extract F4M formats
+formats = self._extract_f4m_formats(
+    f4m_url,
+    video_id,
+    f4m_id='hds'
+)
+```
+
+### Authentication
+
+```python
+class MyExtractorIE(InfoExtractor):
+    _NETRC_MACHINE = 'example'
+    
+    def _perform_login(self, username, password):
+        login_page = self._download_webpage(
+            'https://example.com/login',
+            None,
+            'Downloading login page'
+        )
+        
+        login_form = self._hidden_inputs(login_page)
+        login_form.update({
+            'username': username,
+            'password': password,
+        })
+        
+        response = self._download_webpage(
+            'https://example.com/login',
+            None,
+            'Logging in',
+            data=urlencode_postdata(login_form)
+        )
+```
+
+### Geo-restriction Handling
+
+```python
+from yt_dlp.utils import GeoRestrictedError
+
+if geo_restricted:
+    self.raise_geo_restricted(
+        countries=['US', 'GB'],
+        metadata_available=True
+    )
+```
+
+## Testing Your Extractor
+
+### Adding Test Cases
+
+```python
+class MyExtractorIE(InfoExtractor):
+    _VALID_URL = r'https?://(?:www\.)?example\.com/watch\?v=(?P<id>[0-9]+)'
+    
+    _TESTS = [{
+        'url': 'https://www.example.com/watch?v=12345',
+        'md5': '0123456789abcdef0123456789abcdef',
+        'info_dict': {
+            'id': '12345',
+            'ext': 'mp4',
+            'title': 'Test Video',
+            'description': 'Test Description',
+            'duration': 180,
+            'upload_date': '20240101',
+        }
+    }, {
+        # Test another URL
+        'url': 'https://www.example.com/watch?v=67890',
+        'only_matching': True,  # Just test URL matching
+    }]
+```
+
+### Running Tests
+
+```bash
+# Test specific extractor
+python -m pytest test/test_download.py::TestDownload::test_MyExtractor
+
+# Test with verbose output
+python -m pytest test/test_download.py -v
+```
+
+## Registering Your Extractor
+
+### As a Plugin
+
+Create a plugin package (recommended):
+
+```
+myplugin/
+└── yt_dlp_plugins/
+    └── extractor/
+        └── myextractor.py
+```
+
+See [Plugin System](/advanced/plugins) for installation details.
+
+### Contributing to yt-dlp
+
+To contribute your extractor to the main repository:
+
+1. Add your extractor to `yt_dlp/extractor/`
+2. Import it in `yt_dlp/extractor/_extractors.py`
+3. Follow the [contributing guidelines](https://github.com/yt-dlp/yt-dlp/blob/master/CONTRIBUTING.md)
+
+## Best Practices
+
+<CardGroup cols={2}>
+  <Card title="Use Helper Methods" icon="wrench">
+    Leverage InfoExtractor's built-in methods instead of reimplementing common functionality.
+  </Card>
+  
+  <Card title="Handle Errors Gracefully" icon="shield-check">
+    Use `default` parameters and try-except blocks to handle missing data.
+  </Card>
+  
+  <Card title="Provide Multiple Formats" icon="layer-group">
+    When possible, extract all available quality options and let yt-dlp's format selection handle the rest.
+  </Card>
+  
+  <Card title="Add Comprehensive Tests" icon="flask">
+    Include test cases for different video types, edge cases, and error conditions.
+  </Card>
+</CardGroup>
+
+## Common Patterns
+
+### Extracting Embedded JSON Data
+
+```python
+config = self._search_json(
+    r'var\s+config\s*=',
+    webpage,
+    'config',
+    video_id,
+    transform_source=js_to_json
+)
+```
+
+### Handling Age-Restricted Content
+
+```python
+if age_restricted:
+    age_limit = 18
+else:
+    age_limit = 0
+
+return {
+    # ... other fields ...
+    'age_limit': age_limit,
+}
+```
+
+### Working with Timestamps
+
+```python
+from yt_dlp.utils import unified_timestamp
+
+timestamp = unified_timestamp('2024-01-01T12:00:00Z')
+# or
+timestamp = unified_timestamp('January 1, 2024')
+
+return {
+    # ... other fields ...
+    'timestamp': timestamp,  # Will auto-generate upload_date
+}
+```
+
+## Related Resources
+
+- [Developer Instructions](https://github.com/yt-dlp/yt-dlp/blob/master/CONTRIBUTING.md#developer-instructions)
+- [InfoExtractor Source Code](https://github.com/yt-dlp/yt-dlp/blob/master/yt_dlp/extractor/common.py)
+- [Generic Extractor Example](https://github.com/yt-dlp/yt-dlp/blob/master/yt_dlp/extractor/generic.py)
+- [Plugin Development Wiki](https://github.com/yt-dlp/yt-dlp/wiki/Plugin-Development)

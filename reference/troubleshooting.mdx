@@ -1,0 +1,486 @@
+---
+title: Troubleshooting
+description: Common issues and solutions for yt-dlp
+icon: wrench
+---
+
+This guide covers common issues you might encounter when using yt-dlp and their solutions.
+
+## Before You Start
+
+<Warning>
+**Always update to the latest nightly version before reporting issues:**
+
+```bash
+yt-dlp --update-to nightly
+```
+
+Many issues are already fixed in newer versions.
+</Warning>
+
+### Check Verbose Output
+
+When troubleshooting, always use verbose mode to see detailed information:
+
+```bash
+yt-dlp --verbose URL
+```
+
+## Common Error Messages
+
+### "ERROR: Unable to download webpage: HTTP Error 403: Forbidden"
+
+**Cause:** The website is blocking your request, often due to:
+- Geographic restrictions
+- Rate limiting
+- Bot detection
+- TLS fingerprinting
+
+**Solutions:**
+
+<Accordion title="Solution 1: Use browser impersonation">
+```bash
+yt-dlp --impersonate chrome URL
+```
+
+Requires `curl_cffi` to be installed. See available targets:
+
+```bash
+yt-dlp --list-impersonate-targets
+```
+</Accordion>
+
+<Accordion title="Solution 2: Use cookies from your browser">
+```bash
+yt-dlp --cookies-from-browser firefox URL
+```
+
+Supported browsers: `firefox`, `chrome`, `chromium`, `edge`, `opera`, `safari`
+</Accordion>
+
+<Accordion title="Solution 3: Use a proxy">
+```bash
+yt-dlp --proxy socks5://127.0.0.1:1080 URL
+```
+</Accordion>
+
+<Accordion title="Solution 4: Bypass geo-restrictions">
+```bash
+yt-dlp --geo-bypass URL
+
+# Or specify country code
+yt-dlp --xff "US" URL
+```
+</Accordion>
+
+### "ERROR: [youtube] Video unavailable"
+
+**Solutions:**
+
+<AccordionGroup>
+  <Accordion title="Update and use yt-dlp-ejs">
+    YouTube frequently changes its code. Ensure you have:
+    1. Latest nightly version
+    2. yt-dlp-ejs installed with a JavaScript runtime
+    
+    ```bash
+    yt-dlp --update-to nightly
+    # Install deno (recommended JS runtime)
+    ```
+    
+    Check the [EJS wiki](https://github.com/yt-dlp/yt-dlp/wiki/EJS) for setup.
+  </Accordion>
+
+  <Accordion title="Use cookies">
+    Some videos require authentication:
+    
+    ```bash
+    yt-dlp --cookies-from-browser firefox URL
+    ```
+  </Accordion>
+
+  <Accordion title="Check if video is actually available">
+    Try opening the URL in your browser to verify the video exists and is accessible.
+  </Accordion>
+</AccordionGroup>
+
+### "ERROR: ffmpeg not found"
+
+**Cause:** ffmpeg is not installed or not in your system PATH.
+
+**Solutions:**
+
+```bash
+# Linux (Debian/Ubuntu)
+sudo apt install ffmpeg
+
+# macOS (Homebrew)
+brew install ffmpeg
+
+# Windows - download from:
+# https://github.com/yt-dlp/FFmpeg-Builds/releases
+```
+
+Or specify ffmpeg location:
+
+```bash
+yt-dlp --ffmpeg-location /path/to/ffmpeg URL
+```
+
+<Note>
+Use yt-dlp's [custom ffmpeg builds](https://github.com/yt-dlp/FFmpeg-Builds) which include patches for known issues.
+</Note>
+
+### "ERROR: Requested format is not available"
+
+**Cause:** The format you requested doesn't exist for this video.
+
+**Solutions:**
+
+<AccordionGroup>
+  <Accordion title="List available formats">
+    ```bash
+    yt-dlp -F URL
+    ```
+    
+    This shows all available formats with their IDs.
+  </Accordion>
+
+  <Accordion title="Use format selection">
+    ```bash
+    # Best video + best audio
+    yt-dlp -f "bestvideo+bestaudio" URL
+    
+    # Best overall quality
+    yt-dlp -f "best" URL
+    
+    # Specific format by ID
+    yt-dlp -f 137+140 URL
+    ```
+  </Accordion>
+
+  <Accordion title="Fallback to next best">
+    ```bash
+    yt-dlp -f "bestvideo[height<=1080]+bestaudio/best" URL
+    ```
+  </Accordion>
+</AccordionGroup>
+
+### "ERROR: This video requires payment to watch"
+
+**Cause:** The video is behind a paywall or requires authentication.
+
+**Solution:**
+
+Use cookies from a logged-in browser session:
+
+```bash
+yt-dlp --cookies-from-browser chrome URL
+```
+
+<Warning>
+yt-dlp cannot bypass DRM protection. If a video uses DRM (like Widevine), it cannot be downloaded.
+</Warning>
+
+### "WARNING: unable to obtain file audio codec with ffprobe"
+
+**Cause:** ffprobe is missing or outdated.
+
+**Solution:**
+
+Install/update ffmpeg (includes ffprobe):
+
+```bash
+# Check ffprobe version
+ffprobe -version
+
+# Update ffmpeg/ffprobe using your package manager
+```
+
+## Download Issues
+
+### Slow Download Speeds
+
+**Solutions:**
+
+<Accordion title="Use external downloader">
+```bash
+# Use aria2c for faster parallel downloads
+yt-dlp --downloader aria2c --downloader-args "-x 16 -s 16" URL
+```
+
+Install aria2c:
+- Linux: `sudo apt install aria2`
+- macOS: `brew install aria2`
+- Windows: Download from [aria2 releases](https://github.com/aria2/aria2/releases)
+</Accordion>
+
+<Accordion title="Increase concurrent fragments">
+```bash
+yt-dlp -N 10 URL
+```
+
+Downloads 10 fragments concurrently (default is 1).
+</Accordion>
+
+<Accordion title="Limit rate to avoid throttling">
+```bash
+yt-dlp --limit-rate 5M URL
+```
+
+Some servers throttle if you download too fast.
+</Accordion>
+
+### Download Keeps Failing
+
+**Solutions:**
+
+```bash
+# Increase retries
+yt-dlp --retries 20 URL
+
+# Add retry sleep time
+yt-dlp --retry-sleep 5 URL
+
+# Resume partial downloads
+yt-dlp --continue URL
+
+# Keep fragments on failure for debugging
+yt-dlp --keep-fragments URL
+```
+
+### "ERROR: unable to download video data: HTTP Error 416"
+
+**Cause:** Server doesn't support resuming from where you left off.
+
+**Solution:**
+
+```bash
+yt-dlp --no-continue URL
+```
+
+This restarts the download from the beginning.
+
+## Authentication Issues
+
+### "ERROR: Unable to log in"
+
+**Solutions:**
+
+<AccordionGroup>
+  <Accordion title="Use cookies instead of username/password">
+    Many sites block programmatic login but work with cookies:
+    
+    ```bash
+    yt-dlp --cookies-from-browser firefox URL
+    ```
+  </Accordion>
+
+  <Accordion title="Check credentials">
+    Verify your username and password are correct:
+    
+    ```bash
+    yt-dlp --username YOUR_USERNAME --password YOUR_PASSWORD URL
+    ```
+  </Accordion>
+
+  <Accordion title="Use .netrc file">
+    Create `~/.netrc` (Unix) or `%HOME%\_netrc` (Windows):
+    
+    ```
+    machine youtube
+    login YOUR_EMAIL
+    password YOUR_PASSWORD
+    ```
+    
+    Then run:
+    ```bash
+    yt-dlp --netrc URL
+    ```
+  </Accordion>
+
+  <Accordion title="Two-factor authentication">
+    If the site uses 2FA, use cookies from browser instead of direct login.
+  </Accordion>
+</AccordionGroup>
+
+## Post-Processing Issues
+
+### "ERROR: Postprocessing failed"
+
+**Cause:** Usually related to missing or incompatible ffmpeg.
+
+**Solutions:**
+
+<Accordion title="Check ffmpeg installation">
+```bash
+ffmpeg -version
+```
+
+Ensure you have a recent version (4.0+).
+</Accordion>
+
+<Accordion title="Use yt-dlp's ffmpeg builds">
+Download from [yt-dlp/FFmpeg-Builds](https://github.com/yt-dlp/FFmpeg-Builds/releases)
+</Accordion>
+
+<Accordion title="Skip post-processing">
+To download without post-processing:
+
+```bash
+yt-dlp --no-post-overwrites URL
+```
+</Accordion>
+
+### Thumbnail Embedding Failed
+
+**Solutions:**
+
+```bash
+# Install mutagen
+pip install mutagen
+
+# Or use AtomicParsley for MP4 files
+sudo apt install atomicparsley  # Linux
+brew install atomicparsley       # macOS
+```
+
+## Playlist Issues
+
+### "ERROR: Unable to download just video (if you want to download playlist, pass --yes-playlist)"
+
+**Solution:**
+
+If the URL contains both a video and playlist:
+
+```bash
+# Download entire playlist
+yt-dlp --yes-playlist URL
+
+# Download only the specific video
+yt-dlp --no-playlist URL
+```
+
+### Playlist Download Incomplete
+
+**Solutions:**
+
+```bash
+# Continue despite errors
+yt-dlp --ignore-errors URL
+
+# Download specific items
+yt-dlp --playlist-items 1-10,15,20 URL
+
+# Download in reverse order
+yt-dlp --playlist-reverse URL
+
+# Random order
+yt-dlp --playlist-random URL
+```
+
+## Platform-Specific Issues
+
+### Windows
+
+<AccordionGroup>
+  <Accordion title="Missing MSVCR100.dll">
+    Install [Microsoft Visual C++ 2010 Redistributable](https://www.microsoft.com/en-us/download/details.aspx?id=26999)
+  </Accordion>
+
+  <Accordion title="PowerShell encoding issues">
+    Use Command Prompt instead of PowerShell, or set UTF-8 encoding:
+    
+    ```powershell
+    [Console]::OutputEncoding = [System.Text.Encoding]::UTF8
+    ```
+  </Accordion>
+
+  <Accordion title="Path too long error">
+    Use shorter output templates or enable long path support in Windows.
+  </Accordion>
+</AccordionGroup>
+
+### macOS
+
+<AccordionGroup>
+  <Accordion title="Permission denied">
+    Make the binary executable:
+    
+    ```bash
+    chmod a+rx /usr/local/bin/yt-dlp
+    ```
+  </Accordion>
+
+  <Accordion title="Quarantine warning">
+    Remove quarantine attribute:
+    
+    ```bash
+    xattr -d com.apple.quarantine /usr/local/bin/yt-dlp
+    ```
+  </Accordion>
+</AccordionGroup>
+
+### Linux
+
+<AccordionGroup>
+  <Accordion title="SSL certificate errors">
+    Install ca-certificates:
+    
+    ```bash
+    sudo apt install ca-certificates
+    ```
+  </Accordion>
+
+  <Accordion title="Python SSL module not available">
+    Reinstall Python with SSL support:
+    
+    ```bash
+    sudo apt install libssl-dev
+    ```
+  </Accordion>
+</AccordionGroup>
+
+## Getting Help
+
+### Check the FAQ
+
+Many common questions are answered in the [FAQ](https://github.com/yt-dlp/yt-dlp/wiki/FAQ).
+
+### Search Existing Issues
+
+Before reporting a bug, search [GitHub Issues](https://github.com/yt-dlp/yt-dlp/issues) to see if it's already reported.
+
+### Reporting Bugs
+
+When reporting an issue, always include:
+
+1. **Full verbose output:**
+   ```bash
+   yt-dlp --verbose URL 2>&1 | tee output.txt
+   ```
+
+2. **Version information:**
+   ```bash
+   yt-dlp --version
+   ```
+
+3. **Complete command used**
+
+4. **URL (if not private/sensitive)**
+
+<Note>
+For privacy, you can redact sensitive URLs, but provide enough context about the site/extractor being used.
+</Note>
+
+### Community Support
+
+Join the discussion:
+
+- [Discord Server](https://discord.gg/H5MNcFW63r)
+- [GitHub Discussions](https://github.com/yt-dlp/yt-dlp/discussions)
+- [GitHub Issues](https://github.com/yt-dlp/yt-dlp/issues)
+
+<Warning>
+**Do not ask for help downloading copyrighted content.** yt-dlp is a tool - it's your responsibility to use it legally.
+</Warning>

@@ -1,0 +1,270 @@
+---
+title: 'Downloading Videos'
+description: 'Learn the basics of downloading videos with yt-dlp'
+icon: 'download'
+---
+
+## Overview
+
+yt-dlp makes it easy to download videos from thousands of supported sites. This guide covers the fundamental workflows for downloading videos effectively.
+
+## Basic Download
+
+The simplest way to download a video is to provide the URL:
+
+```bash
+yt-dlp "https://www.youtube.com/watch?v=BaW_jenozKc"
+```
+
+By default, yt-dlp downloads the best available quality, equivalent to using `-f bestvideo*+bestaudio/best`.
+
+<Tip>
+yt-dlp will automatically merge video and audio streams when ffmpeg is available, giving you the best quality output.
+</Tip>
+
+## Selecting Video Quality
+
+<Steps>
+  <Step title="List available formats">
+    View all available quality options before downloading:
+    
+    ```bash
+    yt-dlp -F "https://www.youtube.com/watch?v=BaW_jenozKc"
+    ```
+    
+    This displays a table showing format codes, resolutions, codecs, and file sizes.
+  </Step>
+
+  <Step title="Choose a specific format">
+    Download using a format code from the list:
+    
+    ```bash
+    yt-dlp -f 22 "https://www.youtube.com/watch?v=BaW_jenozKc"
+    ```
+  </Step>
+
+  <Step title="Use format selectors">
+    Select formats using criteria instead of specific codes:
+    
+    ```bash
+    # Best video + audio, or best combined format
+    yt-dlp -f "bv+ba/b" URL
+    
+    # Best MP4 format
+    yt-dlp -f "bv*[ext=mp4]+ba[ext=m4a]/b[ext=mp4]" URL
+    
+    # Best video up to 720p
+    yt-dlp -f "bv*[height<=720]+ba/b" URL
+    ```
+  </Step>
+</Steps>
+
+## Quality Preferences
+
+### Download best quality up to a limit
+
+<CodeGroup>
+```bash Resolution Limit
+# No better than 480p
+yt-dlp -S "res:480" URL
+
+# No better than 720p
+yt-dlp -S "height:720" URL
+```
+
+```bash File Size Limit
+# No bigger than 50 MB
+yt-dlp -f "b" -S "filesize:50M" URL
+
+# Closest to 50 MB
+yt-dlp -f "b" -S "filesize~50M" URL
+```
+
+```bash Codec Preference
+# Best video with h264 codec or better
+yt-dlp -S "codec:h264" URL
+
+# Prefer VP9 or AV1
+yt-dlp -S "vcodec:vp9" URL
+```
+</CodeGroup>
+
+## Download Multiple Videos
+
+### From a file
+
+Create a text file with URLs (one per line):
+
+```txt urls.txt
+https://www.youtube.com/watch?v=BaW_jenozKc
+https://www.youtube.com/watch?v=dQw4w9WgXcQ
+# Lines starting with # are comments
+```
+
+Then download all:
+
+```bash
+yt-dlp -a urls.txt
+```
+
+### Multiple URLs directly
+
+```bash
+yt-dlp URL1 URL2 URL3
+```
+
+## Output Location
+
+Customize where files are saved:
+
+<CodeGroup>
+```bash Custom Directory
+# Save to specific folder
+yt-dlp -P ~/Downloads/Videos URL
+```
+
+```bash Custom Filename
+# Custom output template
+yt-dlp -o "%(title)s.%(ext)s" URL
+
+# With uploader name
+yt-dlp -o "%(uploader)s - %(title)s.%(ext)s" URL
+
+# Organized by date
+yt-dlp -o "%(upload_date>%Y-%m-%d)s - %(title)s.%(ext)s" URL
+```
+
+```bash Separate Paths
+# Different paths for different file types
+yt-dlp -P "~/Videos" -P "temp:~/Downloads/temp" URL
+```
+</CodeGroup>
+
+## Common Download Scenarios
+
+### Download for offline viewing
+
+```bash
+# Best quality MP4 (most compatible)
+yt-dlp --merge-output-format mp4 --remux-video mp4 \
+  -S "vcodec:h264,acodec:aac" URL
+```
+
+### Quick download (smallest file)
+
+```bash
+# Smallest file size
+yt-dlp -S "+size,+br" URL
+```
+
+### High quality archival
+
+```bash
+# Best possible quality with metadata
+yt-dlp -f "bv*+ba" --embed-metadata --embed-thumbnail \
+  --embed-subs --write-description URL
+```
+
+## Download with Retries
+
+<Warning>
+Network issues can interrupt downloads. Configure retry behavior for reliability.
+</Warning>
+
+```bash
+# Retry up to 10 times (default)
+yt-dlp --retries 10 URL
+
+# Infinite retries
+yt-dlp --retries infinite URL
+
+# With exponential backoff
+yt-dlp --retry-sleep exp=1:60 URL
+```
+
+## Resume Interrupted Downloads
+
+yt-dlp automatically resumes partially downloaded files:
+
+```bash
+# Continue partial downloads (default)
+yt-dlp -c URL
+
+# Force restart from beginning
+yt-dlp --no-continue URL
+```
+
+## Speed Limiting
+
+Control download speed to avoid network congestion:
+
+```bash
+# Limit to 1 MB/s
+yt-dlp -r 1M URL
+
+# Limit to 500 KB/s
+yt-dlp --limit-rate 500K URL
+```
+
+## Batch Download Best Practices
+
+<Tip>
+When downloading many videos, use these options to be respectful to servers:
+</Tip>
+
+```bash
+yt-dlp \
+  --sleep-interval 5 \
+  --max-sleep-interval 15 \
+  --sleep-requests 1 \
+  --download-archive archive.txt \
+  -a urls.txt
+```
+
+This configuration:
+- Waits 5-15 seconds between downloads
+- Waits 1 second between requests
+- Tracks downloaded videos to avoid duplicates
+
+## Troubleshooting
+
+### Video unavailable or private
+
+```bash
+# Ignore errors and continue
+yt-dlp --ignore-errors -a urls.txt
+```
+
+### Age-restricted content
+
+```bash
+# Use cookies from browser
+yt-dlp --cookies-from-browser firefox URL
+```
+
+### Geo-restricted content
+
+```bash
+# Use proxy
+yt-dlp --proxy socks5://127.0.0.1:1080 URL
+
+# Fake X-Forwarded-For header
+yt-dlp --xff "US" URL
+```
+
+## Next Steps
+
+<CardGroup cols={2}>
+  <Card title="Audio Extraction" icon="music" href="/guides/audio-extraction">
+    Extract audio from videos in various formats
+  </Card>
+  <Card title="Playlists" icon="list" href="/guides/playlists">
+    Download entire playlists and channels
+  </Card>
+  <Card title="Format Selection" icon="sliders" href="/core-concepts/format-selection">
+    Advanced format selection options
+  </Card>
+  <Card title="Output Templates" icon="file" href="/core-concepts/output-templates">
+    Customize file naming and organization
+  </Card>
+</CardGroup>

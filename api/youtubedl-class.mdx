@@ -1,0 +1,430 @@
+---
+title: YoutubeDL Class
+description: Complete reference for the YoutubeDL class, the main interface for yt-dlp's Python API
+---
+
+The `YoutubeDL` class is the central component of yt-dlp's Python API. It handles video downloading, information extraction, and coordination of extractors and post-processors.
+
+## Class Overview
+
+```python
+from yt_dlp import YoutubeDL
+
+ydl = YoutubeDL(params=None, auto_init=True)
+```
+
+<ParamField path="params" type="dict" default="{}">
+  Dictionary of options to configure the downloader behavior
+</ParamField>
+
+<ParamField path="auto_init" type="boolean | string" default="true">
+  Whether to load default extractors and print header. Set to 'no_verbose_header' to skip header printing
+</ParamField>
+
+## Constructor Parameters
+
+The `params` dictionary accepts numerous configuration options. Below are the most important ones:
+
+### Authentication
+
+<ParamField path="username" type="string">
+  Username for authentication purposes
+</ParamField>
+
+<ParamField path="password" type="string">
+  Password for authentication purposes
+</ParamField>
+
+<ParamField path="videopassword" type="string">
+  Password for accessing a video
+</ParamField>
+
+<ParamField path="usenetrc" type="boolean" default="false">
+  Use netrc for authentication instead
+</ParamField>
+
+### Output Options
+
+<ParamField path="outtmpl" type="string | dict">
+  Output filename template. Can be a string or dictionary with keys 'default', 'chapter', etc.
+  
+  Example: `'%(title)s.%(ext)s'` or `{'default': '%(title)s.%(ext)s'}`
+</ParamField>
+
+<ParamField path="quiet" type="boolean" default="false">
+  Do not print messages to stdout
+</ParamField>
+
+<ParamField path="verbose" type="boolean" default="false">
+  Print additional info to stdout
+</ParamField>
+
+<ParamField path="no_warnings" type="boolean" default="false">
+  Do not print out anything for warnings
+</ParamField>
+
+### Download Control
+
+<ParamField path="format" type="string | function">
+  Video format code. See format selection documentation. Can also be a function that takes context and returns formats to download.
+  
+  Examples: `'best'`, `'bestvideo+bestaudio'`, `'worst[height>=480]'`
+</ParamField>
+
+<ParamField path="skip_download" type="boolean" default="false">
+  Skip the actual download of the video file
+</ParamField>
+
+<ParamField path="simulate" type="boolean">
+  Do not download video files. If unset, simulate only if listing formats/subtitles/thumbnails
+</ParamField>
+
+<ParamField path="ignoreerrors" type="boolean | string" default="false">
+  Do not stop on download errors. Can be 'only_download' to ignore only download errors
+</ParamField>
+
+<ParamField path="extract_flat" type="boolean | string" default="false">
+  Do not resolve URLs further
+  - `False`: Always process (default for API)
+  - `True`: Never process
+  - `'in_playlist'`: Do not process inside playlists
+  - `'discard'`: Always process but don't return result from playlists
+  - `'discard_in_playlist'`: Same as discard but only for playlists (default for CLI)
+</ParamField>
+
+### Format Selection
+
+<ParamField path="format_sort" type="list">
+  List of fields by which to sort video formats
+</ParamField>
+
+<ParamField path="format_sort_force" type="boolean" default="false">
+  Force the given format_sort
+</ParamField>
+
+<ParamField path="allow_multiple_video_streams" type="boolean" default="false">
+  Allow multiple video streams to be merged into a single file
+</ParamField>
+
+<ParamField path="allow_multiple_audio_streams" type="boolean" default="false">
+  Allow multiple audio streams to be merged into a single file
+</ParamField>
+
+### Filesystem Options
+
+<ParamField path="paths" type="dict">
+  Dictionary of output paths. Allowed keys are 'home', 'temp' and output template types
+</ParamField>
+
+<ParamField path="restrictfilenames" type="boolean" default="false">
+  Do not allow "&" and spaces in file names
+</ParamField>
+
+<ParamField path="windowsfilenames" type="boolean">
+  Force filenames to be Windows compatible (true) or sanitize minimally (false)
+</ParamField>
+
+<ParamField path="overwrites" type="boolean">
+  Overwrite all files if true, overwrite only non-video files if None, don't overwrite if false
+</ParamField>
+
+### Metadata Options
+
+<ParamField path="writeinfojson" type="boolean" default="false">
+  Write the video description to a .info.json file
+</ParamField>
+
+<ParamField path="writethumbnail" type="boolean" default="false">
+  Write the thumbnail image to a file
+</ParamField>
+
+<ParamField path="writesubtitles" type="boolean" default="false">
+  Write the video subtitles to a file
+</ParamField>
+
+<ParamField path="writeautomaticsub" type="boolean" default="false">
+  Write automatically generated subtitles to a file
+</ParamField>
+
+<ParamField path="getcomments" type="boolean" default="false">
+  Extract video comments (requires writeinfojson to write to disk)
+</ParamField>
+
+### Network Options
+
+<ParamField path="proxy" type="string">
+  URL of the proxy server to use
+</ParamField>
+
+<ParamField path="socket_timeout" type="number">
+  Time to wait for unresponsive hosts, in seconds
+</ParamField>
+
+<ParamField path="http_headers" type="dict">
+  Dictionary of custom headers to be used for all requests
+</ParamField>
+
+<ParamField path="source_address" type="string">
+  Client-side IP address to bind to
+</ParamField>
+
+<ParamField path="impersonate" type="ImpersonateTarget">
+  Client to impersonate for requests
+</ParamField>
+
+### Post-Processing
+
+<ParamField path="postprocessors" type="list">
+  List of post-processor dictionaries. Each must have a 'key' field with the post-processor name
+</ParamField>
+
+<ParamField path="keepvideo" type="boolean" default="false">
+  Keep the video file after post-processing
+</ParamField>
+
+<ParamField path="ffmpeg_location" type="string">
+  Path to the ffmpeg binary or its containing directory
+</ParamField>
+
+## Main Methods
+
+### download()
+
+Download videos from a list of URLs.
+
+```python
+def download(url_list: list[str]) -> int
+```
+
+<ParamField path="url_list" type="list[str]" required>
+  List of URLs to download
+</ParamField>
+
+<ResponseField name="return" type="int">
+  Exit code (0 for success, non-zero for errors)
+</ResponseField>
+
+**Example:**
+
+```python
+with yt_dlp.YoutubeDL({'format': 'best'}) as ydl:
+    error_code = ydl.download(['https://www.youtube.com/watch?v=dQw4w9WgXcQ'])
+    if error_code != 0:
+        print("Download failed")
+```
+
+### extract_info()
+
+Extract and return the information dictionary of a URL.
+
+```python
+def extract_info(
+    url: str,
+    download: bool = True,
+    ie_key: str | None = None,
+    extra_info: dict | None = None,
+    process: bool = True,
+    force_generic_extractor: bool = False
+) -> dict | None
+```
+
+<ParamField path="url" type="string" required>
+  URL to extract information from
+</ParamField>
+
+<ParamField path="download" type="boolean" default="true">
+  Whether to download videos
+</ParamField>
+
+<ParamField path="ie_key" type="string">
+  Use only the extractor with this key (e.g., 'Youtube', 'Generic')
+</ParamField>
+
+<ParamField path="process" type="boolean" default="true">
+  Whether to resolve all unresolved references (URLs, playlist items). Must be True for download to work
+</ParamField>
+
+<ParamField path="extra_info" type="dict">
+  Dictionary containing extra values to add to the info (for internal use)
+</ParamField>
+
+<ParamField path="force_generic_extractor" type="boolean" default="false">
+  Force using the generic extractor (deprecated, use ie_key='Generic')
+</ParamField>
+
+<ResponseField name="return" type="dict | None">
+  Information dictionary containing video metadata and formats
+</ResponseField>
+
+**Example:**
+
+```python
+with yt_dlp.YoutubeDL({}) as ydl:
+    info = ydl.extract_info('https://www.youtube.com/watch?v=dQw4w9WgXcQ', download=False)
+    
+    print(f"Title: {info['title']}")
+    print(f"Duration: {info['duration']}")
+    print(f"Formats available: {len(info['formats'])}")
+```
+
+### add_post_processor()
+
+Add a post-processor to the downloader.
+
+```python
+def add_post_processor(pp: PostProcessor, when: str = 'post_process') -> None
+```
+
+<ParamField path="pp" type="PostProcessor" required>
+  Post-processor instance to add
+</ParamField>
+
+<ParamField path="when" type="string" default="post_process">
+  When to run the post-processor. Valid values: 'pre_process', 'after_filter', 'before_dl', 'post_process', 'after_move', 'after_video', 'playlist'
+</ParamField>
+
+**Example:**
+
+```python
+from yt_dlp.postprocessor import FFmpegExtractAudioPP
+
+with yt_dlp.YoutubeDL({}) as ydl:
+    ydl.add_post_processor(FFmpegExtractAudioPP(preferredcodec='mp3'))
+    ydl.download(['https://www.youtube.com/watch?v=dQw4w9WgXcQ'])
+```
+
+### add_progress_hook()
+
+Add a callback function for download progress updates.
+
+```python
+def add_progress_hook(ph: callable) -> None
+```
+
+<ParamField path="ph" type="callable" required>
+  Function that receives a dictionary with progress information
+</ParamField>
+
+The progress hook receives a dictionary with these keys:
+- `status`: One of "downloading", "error", or "finished"
+- `filename`: Final filename
+- `downloaded_bytes`: Bytes downloaded so far
+- `total_bytes`: Total size of the file
+- `speed`: Download speed in bytes/second
+- `eta`: Estimated time remaining
+
+**Example:**
+
+```python
+def my_hook(d):
+    if d['status'] == 'downloading':
+        print(f"Downloading: {d['_percent_str']} at {d['_speed_str']}")
+    elif d['status'] == 'finished':
+        print(f"Done downloading {d['filename']}")
+
+with yt_dlp.YoutubeDL({}) as ydl:
+    ydl.add_progress_hook(my_hook)
+    ydl.download(['https://www.youtube.com/watch?v=dQw4w9WgXcQ'])
+```
+
+### Context Manager
+
+The YoutubeDL class supports context manager protocol:
+
+```python
+with yt_dlp.YoutubeDL(params) as ydl:
+    # Use ydl here
+    ydl.download(urls)
+# Cleanup happens automatically
+```
+
+This ensures proper cleanup of resources like cookies and temporary files.
+
+## Class Methods
+
+### validate_outtmpl()
+
+Validate an output template string.
+
+```python
+@staticmethod
+def validate_outtmpl(outtmpl: str) -> str | None
+```
+
+Returns an error message if the template is invalid, or None if valid.
+
+## Utility Methods
+
+### to_screen()
+
+Print a message to the screen output.
+
+```python
+def to_screen(message: str, skip_eol: bool = False, quiet: bool = None) -> None
+```
+
+### report_warning()
+
+Report a warning message.
+
+```python
+def report_warning(message: str, only_once: bool = False) -> None
+```
+
+### report_error()
+
+Report an error message.
+
+```python
+def report_error(message: str) -> None
+```
+
+### write_debug()
+
+Write a debug message.
+
+```python
+def write_debug(message: str, only_once: bool = False) -> None
+```
+
+## Example: Complete Configuration
+
+```python
+import yt_dlp
+
+ydl_opts = {
+    # Format selection
+    'format': 'bestvideo[height<=1080]+bestaudio/best[height<=1080]',
+    
+    # Output template
+    'outtmpl': '%(title)s.%(ext)s',
+    
+    # Filesystem
+    'restrictfilenames': True,
+    'overwrites': False,
+    
+    # Metadata
+    'writeinfojson': True,
+    'writethumbnail': True,
+    'writesubtitles': True,
+    'subtitleslangs': ['en'],
+    
+    # Download control
+    'ignoreerrors': 'only_download',
+    'no_warnings': False,
+    'quiet': False,
+    
+    # Post-processing
+    'postprocessors': [{
+        'key': 'FFmpegExtractAudio',
+        'preferredcodec': 'mp3',
+        'preferredquality': '192',
+    }],
+    
+    # Network
+    'socket_timeout': 30,
+}
+
+with yt_dlp.YoutubeDL(ydl_opts) as ydl:
+    ydl.download(['https://www.youtube.com/watch?v=dQw4w9WgXcQ'])
+```

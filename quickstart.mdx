@@ -1,80 +1,419 @@
 ---
-title: "Quickstart"
-description: "Start building awesome documentation in minutes"
+title: Quick start guide
+description: Learn how to download your first video and master basic yt-dlp commands
 ---
 
-## Get started in three steps
+## Your first download
 
-Get your documentation site running locally and make your first customization.
+Once yt-dlp is installed, downloading a video is as simple as:
 
-### Step 1: Set up your local environment
+```bash
+yt-dlp "https://www.youtube.com/watch?v=BaW_jenozKc"
+```
+
+yt-dlp will automatically:
+- Select the best quality video and audio
+- Merge them into a single file
+- Save to your current directory
+
+<Note>
+  The URL should be in quotes to avoid issues with special characters in your shell.
+</Note>
+
+## Basic usage patterns
+
+### Download best quality
+
+By default, yt-dlp downloads the best quality available:
+
+```bash
+yt-dlp "https://www.youtube.com/watch?v=dQw4w9WgXcQ"
+```
+
+This selects the best video with the best audio and merges them using ffmpeg.
+
+### Download audio only
+
+To download just the audio:
+
+```bash
+yt-dlp -x "https://www.youtube.com/watch?v=dQw4w9WgXcQ"
+```
+
+The `-x` (or `--extract-audio`) option extracts audio from the video.
+
+### Download audio in specific format
+
+To download and convert audio to MP3:
+
+```bash
+yt-dlp -x --audio-format mp3 "https://www.youtube.com/watch?v=dQw4w9WgXcQ"
+```
+
+Supported audio formats: `mp3`, `m4a`, `flac`, `opus`, `vorbis`, `wav`
+
+### Download with custom output name
+
+Specify where and how to save the file:
+
+```bash
+yt-dlp -o "~/Videos/%(title)s.%(ext)s" "https://www.youtube.com/watch?v=dQw4w9WgXcQ"
+```
+
+Common template variables:
+- `%(title)s` - Video title
+- `%(id)s` - Video ID
+- `%(ext)s` - File extension
+- `%(uploader)s` - Channel name
+- `%(upload_date)s` - Upload date (YYYYMMDD)
+
+## Common use cases
 
 <AccordionGroup>
-  <Accordion icon="copy" title="Clone your docs locally">
-    During the onboarding process, you created a GitHub repository with your docs content if you didn't already have one. You can find a link to this repository in your [dashboard](https://dashboard.mintlify.com).
-    
-    To clone the repository locally so that you can make and preview changes to your docs, follow the [Cloning a repository](https://docs.github.com/en/repositories/creating-and-managing-repositories/cloning-a-repository) guide in the GitHub docs.
+  <Accordion title="Download a playlist" icon="list">
+    Download all videos from a playlist:
+
+    ```bash
+    yt-dlp "https://www.youtube.com/playlist?list=PLrAXtmErZgOeiKm4sgNOknGvNjby9efdf"
+    ```
+
+    Download only specific items from a playlist:
+
+    ```bash
+    # Download items 1, 2, 3, 7, and the last 5 items
+    yt-dlp -I 1:3,7,-5:: "https://www.youtube.com/playlist?list=PLAYLIST_ID"
+    ```
+
+    Download playlist with numbered filenames:
+
+    ```bash
+    yt-dlp -o "%(playlist_index)s-%(title)s.%(ext)s" "PLAYLIST_URL"
+    ```
   </Accordion>
-  <Accordion icon="rectangle-terminal" title="Start the preview server">
-    1. Install the Mintlify CLI: `npm i -g mint`
-    2. Navigate to your docs directory and run: `mint dev`
-    3. Open `http://localhost:3000` to see your docs live!
-    
-    <Tip>Your preview updates automatically as you edit files.</Tip>
+
+  <Accordion title="Download entire YouTube channel" icon="tv">
+    Download all uploads from a channel (including shorts and livestreams):
+
+    ```bash
+    yt-dlp "https://www.youtube.com/@channelname"
+    ```
+
+    Or using the channel URL:
+
+    ```bash
+    yt-dlp "https://www.youtube.com/c/channelname/videos"
+    ```
+  </Accordion>
+
+  <Accordion title="Download with subtitles" icon="closed-captioning">
+    Download video with automatic English subtitles:
+
+    ```bash
+    yt-dlp --write-auto-subs --sub-lang en "VIDEO_URL"
+    ```
+
+    Download and embed subtitles in the video file:
+
+    ```bash
+    yt-dlp --write-subs --embed-subs --sub-lang en "VIDEO_URL"
+    ```
+
+    Download all available subtitles:
+
+    ```bash
+    yt-dlp --write-subs --sub-lang all "VIDEO_URL"
+    ```
+  </Accordion>
+
+  <Accordion title="Download specific quality" icon="gauge-high">
+    Download 1080p video when available:
+
+    ```bash
+    yt-dlp -f "bestvideo[height<=1080]+bestaudio/best[height<=1080]" "VIDEO_URL"
+    ```
+
+    Download best video up to 720p:
+
+    ```bash
+    yt-dlp -S "res:720" "VIDEO_URL"
+    ```
+
+    List all available formats before downloading:
+
+    ```bash
+    yt-dlp -F "VIDEO_URL"
+    ```
+  </Accordion>
+
+  <Accordion title="Download from multiple sites" icon="globe">
+    yt-dlp supports thousands of sites. Just use the video URL:
+
+    <CodeGroup>
+    ```bash Vimeo
+    yt-dlp "https://vimeo.com/123456789"
+    ```
+
+    ```bash Twitter/X
+    yt-dlp "https://twitter.com/user/status/1234567890"
+    ```
+
+    ```bash TikTok
+    yt-dlp "https://www.tiktok.com/@user/video/1234567890"
+    ```
+
+    ```bash Twitch
+    yt-dlp "https://www.twitch.tv/videos/1234567890"
+    ```
+    </CodeGroup>
+
+    See the [list of supported sites](https://github.com/yt-dlp/yt-dlp/blob/master/supportedsites.md) for all available extractors.
+  </Accordion>
+
+  <Accordion title="Batch download from file" icon="file-lines">
+    Create a text file with URLs (one per line):
+
+    ```txt urls.txt
+    https://www.youtube.com/watch?v=dQw4w9WgXcQ
+    https://www.youtube.com/watch?v=9bZkp7q19f0
+    https://vimeo.com/123456789
+    # Lines starting with # are comments
+    ```
+
+    Then download all URLs:
+
+    ```bash
+    yt-dlp -a urls.txt
+    ```
   </Accordion>
 </AccordionGroup>
 
-### Step 2: Deploy your changes
+## Essential options
 
-<AccordionGroup>
-  <Accordion icon="github" title="Install our GitHub app">
-    Install the Mintlify GitHub app from your [dashboard](https://dashboard.mintlify.com/settings/organization/github-app).
-    
-    Our GitHub app automatically deploys your changes to your docs site, so you don't need to manage deployments yourself.
-</Accordion>
-<Accordion icon="palette" title="Update your site name and colors">
-    For a first change, let's update the name and colors of your docs site.
+<Steps>
+  <Step title="Format selection">
+    Control video quality and format:
 
-    1. Open `docs.json` in your editor.
-    2. Change the `"name"` field to your project name.
-    3. Update the `"colors"` to match your brand.
-    4. Save and see your changes instantly at `http://localhost:3000`.
+    <CodeGroup>
+    ```bash Best quality (default)
+    yt-dlp "VIDEO_URL"
+    ```
 
-    <Tip>Try changing the primary color to see an immediate difference!</Tip>
-  </Accordion>
-</AccordionGroup>
+    ```bash Specific format by ID
+    yt-dlp -f 137+140 "VIDEO_URL"
+    ```
 
-### Step 3: Go live
+    ```bash Best MP4 format
+    yt-dlp -f "bestvideo[ext=mp4]+bestaudio[ext=m4a]/best[ext=mp4]" "VIDEO_URL"
+    ```
+    </CodeGroup>
 
-<Accordion icon="rocket" title="Publish your docs">
-  1. Commit and push your changes.
-  2. Your docs will update and be live in moments!
-</Accordion>
+    Use `-F` to list all available formats first:
+
+    ```bash
+    yt-dlp -F "VIDEO_URL"
+    ```
+  </Step>
+
+  <Step title="Output template">
+    Customize the output filename and location:
+
+    ```bash
+    yt-dlp -o "~/Downloads/%(uploader)s/%(playlist)s/%(playlist_index)s-%(title)s.%(ext)s" "VIDEO_URL"
+    ```
+
+    Common patterns:
+    - `%(title)s` - Video title
+    - `%(uploader)s` - Channel/uploader name
+    - `%(upload_date>%Y-%m-%d)s` - Formatted date
+    - `%(playlist_index)s` - Position in playlist
+    - `%(id)s` - Video ID
+  </Step>
+
+  <Step title="Download archive">
+    Avoid re-downloading videos you already have:
+
+    ```bash
+    yt-dlp --download-archive downloaded.txt "PLAYLIST_URL"
+    ```
+
+    This creates/updates `downloaded.txt` with IDs of downloaded videos. On subsequent runs, videos already in the archive are skipped.
+  </Step>
+
+  <Step title="Simulate and preview">
+    Preview what would be downloaded without actually downloading:
+
+    ```bash
+    yt-dlp -s "VIDEO_URL"
+    ```
+
+    Get video info as JSON:
+
+    ```bash
+    yt-dlp -j "VIDEO_URL"
+    ```
+
+    Print specific fields:
+
+    ```bash
+    yt-dlp --print "%(title)s - %(uploader)s" "VIDEO_URL"
+    ```
+  </Step>
+</Steps>
+
+## Practical examples
+
+### Download music album from YouTube
+
+```bash
+yt-dlp \
+  -x --audio-format mp3 \
+  -o "%(playlist_title)s/%(playlist_index)s - %(title)s.%(ext)s" \
+  --embed-thumbnail \
+  --add-metadata \
+  "PLAYLIST_URL"
+```
+
+This:
+- Extracts audio only (`-x`)
+- Converts to MP3 (`--audio-format mp3`)
+- Organizes by playlist with numbering
+- Embeds album art (`--embed-thumbnail`)
+- Adds ID3 tags (`--add-metadata`)
+
+### Download video lecture series
+
+```bash
+yt-dlp \
+  -f "bestvideo[height<=720]+bestaudio/best[height<=720]" \
+  -o "%(playlist_title)s/Lecture %(playlist_index)s - %(title)s.%(ext)s" \
+  --write-subs --embed-subs --sub-lang en \
+  --download-archive archive.txt \
+  "PLAYLIST_URL"
+```
+
+This:
+- Limits quality to 720p (smaller file size)
+- Numbers lectures sequentially
+- Downloads and embeds English subtitles
+- Tracks downloaded videos to avoid duplicates
+
+### Download with SponsorBlock integration
+
+```bash
+yt-dlp \
+  --sponsorblock-mark all \
+  --embed-chapters \
+  "VIDEO_URL"
+```
+
+Or remove sponsor segments entirely:
+
+```bash
+yt-dlp \
+  --sponsorblock-remove sponsor,intro,outro \
+  "VIDEO_URL"
+```
+
+### Download livestream from the start
+
+```bash
+yt-dlp --live-from-start "LIVESTREAM_URL"
+```
+
+<Note>
+  This feature is experimental and currently only supports YouTube, Twitch, and TVer.
+</Note>
+
+## Tips and tricks
+
+<CardGroup cols={2}>
+  <Card title="Rate limiting" icon="gauge">
+    Limit download speed to avoid throttling:
+
+    ```bash
+    yt-dlp -r 50K "VIDEO_URL"
+    ```
+
+    `-r 50K` limits to 50 KB/s. Use `M` for MB/s.
+  </Card>
+
+  <Card title="Geo-restriction bypass" icon="globe">
+    Use a proxy for geo-restricted content:
+
+    ```bash
+    yt-dlp --proxy socks5://127.0.0.1:1080 "VIDEO_URL"
+    ```
+  </Card>
+
+  <Card title="Cookies from browser" icon="cookie">
+    Download videos requiring login:
+
+    ```bash
+    yt-dlp --cookies-from-browser chrome "VIDEO_URL"
+    ```
+
+    Supported browsers: chrome, firefox, safari, edge, opera, brave
+  </Card>
+
+  <Card title="Thumbnail embedding" icon="image">
+    Embed video thumbnail as cover art:
+
+    ```bash
+    yt-dlp --embed-thumbnail --convert-thumbnails jpg "VIDEO_URL"
+    ```
+  </Card>
+</CardGroup>
+
+## Getting help
+
+View all available options:
+
+```bash
+yt-dlp --help
+```
+
+Check version and loaded dependencies:
+
+```bash
+yt-dlp --version
+yt-dlp --verbose
+```
+
+List all supported extractors:
+
+```bash
+yt-dlp --list-extractors
+```
 
 ## Next steps
 
-Now that you have your docs running, explore these key features:
-
 <CardGroup cols={2}>
-
-<Card title="Write Content" icon="pen-to-square" href="/essentials/markdown">
-  Learn MDX syntax and start writing your documentation.
-</Card>
-
-<Card title="Customize style" icon="palette" href="/essentials/settings">
-  Make your docs match your brand perfectly.
-</Card>
-
-<Card title="Add code examples" icon="square-code" href="/essentials/code">
-  Include syntax-highlighted code blocks.
-</Card>
-
-<Card title="API documentation" icon="code" href="/api-reference/introduction">
-  Auto-generate API docs from OpenAPI specs.
-</Card>
-
+  <Card
+    title="Format selection"
+    icon="filter"
+    href="/core-concepts/format-selection"
+  >
+    Learn advanced format selection and sorting
+  </Card>
+  <Card
+    title="Output templates"
+    icon="file"
+    href="/core-concepts/output-templates"
+  >
+    Master powerful output template syntax
+  </Card>
+  <Card
+    title="Configuration files"
+    icon="gear"
+    href="/core-concepts/configuration"
+  >
+    Set up default options in config files
+  </Card>
+  <Card
+    title="Post-processing"
+    icon="wand-magic-sparkles"
+    href="/guides/post-processing"
+  >
+    Convert, merge, and modify downloaded videos
+  </Card>
 </CardGroup>
-
-<Note>
-  **Need help?** See our [full documentation](https://mintlify.com/docs) or join our [community](https://mintlify.com/community).
-</Note>

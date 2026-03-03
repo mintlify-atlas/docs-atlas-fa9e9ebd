@@ -1,0 +1,478 @@
+---
+title: Post-Processors
+description: Process and manipulate downloaded media files using yt-dlp's post-processor system
+---
+
+Post-processors allow you to manipulate downloaded files after they've been saved. Common uses include converting formats, extracting audio, embedding metadata, and more.
+
+## What is a Post-Processor?
+
+A post-processor is a component that:
+- Runs after a video has been downloaded
+- Modifies, converts, or enhances the downloaded file
+- Can be chained with other post-processors
+- Returns information about processed files
+
+All post-processors inherit from the `PostProcessor` base class.
+
+## Using Post-Processors
+
+### Via Options Dictionary
+
+The most common way to use post-processors is through the `postprocessors` option:
+
+```python
+import yt_dlp
+
+ydl_opts = {
+    'postprocessors': [{
+        'key': 'FFmpegExtractAudio',
+        'preferredcodec': 'mp3',
+        'preferredquality': '192',
+    }]
+}
+
+with yt_dlp.YoutubeDL(ydl_opts) as ydl:
+    ydl.download(['https://www.youtube.com/watch?v=dQw4w9WgXcQ'])
+```
+
+### Via add_post_processor()
+
+You can also add post-processors programmatically:
+
+```python
+import yt_dlp
+from yt_dlp.postprocessor import FFmpegExtractAudioPP
+
+with yt_dlp.YoutubeDL({}) as ydl:
+    pp = FFmpegExtractAudioPP(
+        downloader=ydl,
+        preferredcodec='mp3',
+        preferredquality='192'
+    )
+    ydl.add_post_processor(pp, when='post_process')
+    ydl.download(['https://www.youtube.com/watch?v=dQw4w9WgXcQ'])
+```
+
+## PostProcessor Base Class
+
+All post-processors inherit from this base class.
+
+### Constructor
+
+```python
+from yt_dlp.postprocessor.common import PostProcessor
+
+class PostProcessor:
+    def __init__(self, downloader=None):
+        pass
+```
+
+<ParamField path="downloader" type="YoutubeDL">
+  The YoutubeDL instance that will use this post-processor
+</ParamField>
+
+### Main Method: run()
+
+Every post-processor must implement the `run()` method:
+
+```python
+def run(self, information: dict) -> tuple[list, dict]
+```
+
+<ParamField path="information" type="dict" required>
+  Dictionary containing video information and the 'filepath' key pointing to the downloaded file
+</ParamField>
+
+<ResponseField name="return" type="tuple[list, dict]">
+  Returns a tuple of (files_to_delete, updated_information)
+</ResponseField>
+
+### Utility Methods
+
+<ParamField path="to_screen(message)" type="method">
+  Print a message to the screen
+</ParamField>
+
+<ParamField path="report_warning(message)" type="method">
+  Report a warning message
+</ParamField>
+
+<ParamField path="write_debug(message)" type="method">
+  Write a debug message
+</ParamField>
+
+<ParamField path="get_param(name, default)" type="method">
+  Get a parameter from the YoutubeDL instance
+</ParamField>
+
+## When to Run Post-Processors
+
+Post-processors can run at different stages of the download process:
+
+<ParamField path="pre_process" type="string">
+  Before any processing (very early)
+</ParamField>
+
+<ParamField path="after_filter" type="string">
+  After video is filtered but before download
+</ParamField>
+
+<ParamField path="before_dl" type="string">
+  Just before downloading
+</ParamField>
+
+<ParamField path="post_process" type="string" default="true">
+  After download completes (default)
+</ParamField>
+
+<ParamField path="after_move" type="string">
+  After file is moved to final location
+</ParamField>
+
+<ParamField path="after_video" type="string">
+  After all post-processors for a video
+</ParamField>
+
+<ParamField path="playlist" type="string">
+  After entire playlist is processed
+</ParamField>
+
+```python
+ydl_opts = {
+    'postprocessors': [
+        {
+            'key': 'FFmpegThumbnailsConvertor',
+            'format': 'jpg',
+            'when': 'before_dl',  # Convert thumbnails before download
+        },
+        {
+            'key': 'FFmpegExtractAudio',
+            'preferredcodec': 'mp3',
+            # 'when' defaults to 'post_process'
+        }
+    ]
+}
+```
+
+## Common Post-Processors
+
+### FFmpegExtractAudio
+
+Extract audio from video files.
+
+```python
+ydl_opts = {
+    'postprocessors': [{
+        'key': 'FFmpegExtractAudio',
+        'preferredcodec': 'mp3',  # mp3, aac, m4a, opus, vorbis, flac, alac, wav
+        'preferredquality': '192',  # Audio quality
+        'nopostoverwrites': False,  # Overwrite existing files
+    }],
+    'keepvideo': False,  # Delete original video file
+}
+```
+
+### FFmpegVideoConvertor
+
+Convert video to a different format.
+
+```python
+ydl_opts = {
+    'postprocessors': [{
+        'key': 'FFmpegVideoConvertor',
+        'preferedformat': 'mp4',  # avi, flv, mkv, mp4, ogg, webm
+    }]
+}
+```
+
+### FFmpegVideoRemuxer
+
+Remux video to a different container without re-encoding.
+
+```python
+ydl_opts = {
+    'postprocessors': [{
+        'key': 'FFmpegVideoRemuxer',
+        'preferedformat': 'mp4',
+    }]
+}
+```
+
+### FFmpegMetadata
+
+Embed metadata and chapters into the video file.
+
+```python
+ydl_opts = {
+    'postprocessors': [{
+        'key': 'FFmpegMetadata',
+        'add_chapters': True,
+        'add_metadata': True,
+        'add_infojson': 'if_exists',  # Embed info.json if available
+    }],
+    'writethumbnail': True,
+    'writeinfojson': True,
+}
+```
+
+### EmbedThumbnail
+
+Embed thumbnail into the media file.
+
+```python
+ydl_opts = {
+    'postprocessors': [{
+        'key': 'EmbedThumbnail',
+        'already_have_thumbnail': False,
+    }],
+    'writethumbnail': True,
+}
+```
+
+### FFmpegEmbedSubtitle
+
+Embed subtitles into the video file.
+
+```python
+ydl_opts = {
+    'postprocessors': [{
+        'key': 'FFmpegEmbedSubtitle',
+        'already_have_subtitle': False,
+    }],
+    'writesubtitles': True,
+    'subtitleslangs': ['en', 'es'],
+}
+```
+
+### FFmpegSubtitlesConvertor
+
+Convert subtitles to a different format.
+
+```python
+ydl_opts = {
+    'postprocessors': [{
+        'key': 'FFmpegSubtitlesConvertor',
+        'format': 'srt',  # srt, ass, vtt, lrc
+        'when': 'before_dl',
+    }],
+    'writesubtitles': True,
+}
+```
+
+### FFmpegThumbnailsConvertor
+
+Convert thumbnails to a different format.
+
+```python
+ydl_opts = {
+    'postprocessors': [{
+        'key': 'FFmpegThumbnailsConvertor',
+        'format': 'jpg',  # jpg, png, webp
+        'when': 'before_dl',
+    }],
+    'writethumbnail': True,
+}
+```
+
+### MetadataParser
+
+Parse and modify metadata fields.
+
+```python
+ydl_opts = {
+    'postprocessors': [{
+        'key': 'MetadataParser',
+        'actions': [
+            ('title', '(?P<artist>.+?) - (?P<track>.+)', None),
+        ],
+        'when': 'pre_process',
+    }]
+}
+```
+
+### Exec
+
+Execute external commands on downloaded files.
+
+```python
+ydl_opts = {
+    'postprocessors': [{
+        'key': 'Exec',
+        'exec_cmd': 'echo "Downloaded: {}"',
+        'when': 'after_move',
+    }]
+}
+```
+
+### SponsorBlock
+
+Remove or mark sponsored segments (YouTube only).
+
+```python
+ydl_opts = {
+    'postprocessors': [{
+        'key': 'SponsorBlock',
+        'categories': ['sponsor', 'intro', 'outro'],
+        'api': 'https://sponsor.ajay.app',
+        'when': 'after_filter',
+    }]
+}
+```
+
+### ModifyChapters
+
+Modify or remove chapter markers.
+
+```python
+ydl_opts = {
+    'postprocessors': [{
+        'key': 'ModifyChapters',
+        'remove_chapters_patterns': [],
+        'remove_sponsor_segments': ['sponsor'],
+        'remove_ranges': [],
+        'sponsorblock_chapter_title': '[SponsorBlock]: %(category_names)l',
+        'force_keyframes': False,
+    }]
+}
+```
+
+### XAttrMetadata
+
+Write metadata to extended file attributes.
+
+```python
+ydl_opts = {
+    'postprocessors': [{
+        'key': 'XAttrMetadata',
+    }]
+}
+```
+
+### MoveFilesAfterDownload
+
+Move files to a different location after download.
+
+```python
+ydl_opts = {
+    'postprocessors': [{
+        'key': 'MoveFilesAfterDownload',
+    }]
+}
+```
+
+## Chaining Post-Processors
+
+You can chain multiple post-processors together:
+
+```python
+ydl_opts = {
+    'postprocessors': [
+        # First: Convert subtitles
+        {
+            'key': 'FFmpegSubtitlesConvertor',
+            'format': 'srt',
+            'when': 'before_dl',
+        },
+        # Second: Embed subtitles
+        {
+            'key': 'FFmpegEmbedSubtitle',
+        },
+        # Third: Add metadata
+        {
+            'key': 'FFmpegMetadata',
+            'add_metadata': True,
+        },
+        # Fourth: Embed thumbnail
+        {
+            'key': 'EmbedThumbnail',
+        },
+        # Finally: Extract audio
+        {
+            'key': 'FFmpegExtractAudio',
+            'preferredcodec': 'mp3',
+        },
+    ],
+    'writesubtitles': True,
+    'writethumbnail': True,
+}
+```
+
+## Custom Post-Processor Example
+
+Create a custom post-processor:
+
+```python
+from yt_dlp.postprocessor.common import PostProcessor
+import os
+
+class MyCustomPP(PostProcessor):
+    def run(self, info):
+        # Get the downloaded file path
+        filepath = info.get('filepath')
+        
+        # Perform some custom processing
+        self.to_screen(f'Processing: {filepath}')
+        
+        # Example: Rename the file
+        new_name = filepath.replace('.mp4', '_processed.mp4')
+        os.rename(filepath, new_name)
+        
+        # Update the info dict
+        info['filepath'] = new_name
+        
+        # Return files to delete and updated info
+        return [], info
+
+# Use it
+with yt_dlp.YoutubeDL({}) as ydl:
+    ydl.add_post_processor(MyCustomPP())
+    ydl.download(['https://www.youtube.com/watch?v=dQw4w9WgXcQ'])
+```
+
+## Progress Hooks for Post-Processors
+
+Monitor post-processor progress:
+
+```python
+def pp_hook(d):
+    if d['status'] == 'started':
+        print(f"Started post-processing with {d['postprocessor']}")
+    elif d['status'] == 'finished':
+        print(f"Finished post-processing")
+
+with yt_dlp.YoutubeDL({'postprocessors': [...]}) as ydl:
+    ydl.add_postprocessor_hook(pp_hook)
+    ydl.download([url])
+```
+
+## FFmpeg Location
+
+Many post-processors require FFmpeg. Specify its location:
+
+```python
+ydl_opts = {
+    'ffmpeg_location': '/usr/local/bin/ffmpeg',  # Path to ffmpeg binary
+    'postprocessors': [{
+        'key': 'FFmpegExtractAudio',
+        'preferredcodec': 'mp3',
+    }]
+}
+```
+
+## Post-Processor Arguments
+
+Pass additional arguments to post-processors:
+
+```python
+ydl_opts = {
+    'postprocessor_args': {
+        'ffmpeg': ['-threads', '4'],  # FFmpeg arguments
+        'ffmpeg_i': ['-hwaccel', 'auto'],  # FFmpeg input arguments
+    },
+    'postprocessors': [{
+        'key': 'FFmpegExtractAudio',
+        'preferredcodec': 'mp3',
+    }]
+}
+```

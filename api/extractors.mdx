@@ -1,0 +1,352 @@
+---
+title: Extractors
+description: Understanding and working with yt-dlp's extractor system to support different video platforms
+---
+
+Extractors are the components that handle site-specific logic for extracting video information from URLs. yt-dlp includes over 1,700 extractors for different websites.
+
+## What is an Extractor?
+
+An extractor is a class that:
+- Determines if it can handle a given URL
+- Extracts video metadata (title, description, formats, etc.)
+- Provides download URLs for the video content
+
+Each extractor inherits from the `InfoExtractor` base class.
+
+## Using Extractors
+
+### List Available Extractors
+
+```python
+import yt_dlp
+
+# Get all extractor classes
+extractors = yt_dlp.gen_extractor_classes()
+
+for extractor in extractors:
+    print(f"{extractor.IE_NAME}: {extractor.IE_DESC}")
+```
+
+### Get a Specific Extractor
+
+```python
+import yt_dlp
+
+# Get YouTube extractor
+youtube_ie = yt_dlp.get_info_extractor('Youtube')
+print(f"Extractor name: {youtube_ie.IE_NAME}")
+print(f"Description: {youtube_ie.IE_DESC}")
+```
+
+### Force a Specific Extractor
+
+```python
+import yt_dlp
+
+with yt_dlp.YoutubeDL({}) as ydl:
+    # Force using the Youtube extractor
+    info = ydl.extract_info(
+        'https://www.youtube.com/watch?v=dQw4w9WgXcQ',
+        ie_key='Youtube',
+        download=False
+    )
+```
+
+## InfoExtractor Base Class
+
+All extractors inherit from the `InfoExtractor` class, which provides common functionality.
+
+### Key Attributes
+
+<ParamField path="IE_NAME" type="string">
+  The extractor's unique identifier (e.g., 'youtube', 'vimeo')
+</ParamField>
+
+<ParamField path="IE_DESC" type="string">
+  Human-readable description of the extractor
+</ParamField>
+
+<ParamField path="_VALID_URL" type="string">
+  Regular expression pattern matching URLs this extractor can handle
+</ParamField>
+
+<ParamField path="_WORKING" type="boolean" default="true">
+  Whether the extractor is currently working
+</ParamField>
+
+<ParamField path="age_limit" type="int">
+  Age limit for content from this extractor
+</ParamField>
+
+### Common Methods
+
+#### suitable()
+
+Check if the extractor can handle a URL.
+
+```python
+if extractor.suitable(url):
+    info = extractor.extract(url)
+```
+
+#### working()
+
+Check if the extractor is currently working.
+
+```python
+if extractor.working():
+    # Use the extractor
+    pass
+else:
+    print("Extractor is marked as broken")
+```
+
+## Information Dictionary Format
+
+Extractors return information dictionaries with standardized fields:
+
+### Required Fields
+
+<ResponseField name="id" type="string" required>
+  Unique video identifier
+</ResponseField>
+
+<ResponseField name="title" type="string" required>
+  Video title (empty string if unavailable, not None)
+</ResponseField>
+
+### Format Information
+
+<ResponseField name="formats" type="list[dict]">
+  List of available formats, ordered from worst to best quality. Each format dict contains:
+  - `url`: Media URL
+  - `format_id`: Format identifier
+  - `ext`: File extension
+  - `width`, `height`: Video dimensions
+  - `tbr`, `abr`, `vbr`: Bitrates
+  - `acodec`, `vcodec`: Codec names
+  - `filesize`: File size in bytes
+</ResponseField>
+
+### Optional Metadata Fields
+
+<ResponseField name="description" type="string">
+  Video description
+</ResponseField>
+
+<ResponseField name="uploader" type="string">
+  Name of the video uploader
+</ResponseField>
+
+<ResponseField name="uploader_id" type="string">
+  Uploader's unique identifier
+</ResponseField>
+
+<ResponseField name="uploader_url" type="string">
+  URL to uploader's profile
+</ResponseField>
+
+<ResponseField name="duration" type="int">
+  Video duration in seconds
+</ResponseField>
+
+<ResponseField name="view_count" type="int">
+  Number of views
+</ResponseField>
+
+<ResponseField name="like_count" type="int">
+  Number of likes
+</ResponseField>
+
+<ResponseField name="upload_date" type="string">
+  Upload date in YYYYMMDD format
+</ResponseField>
+
+<ResponseField name="timestamp" type="int">
+  Unix timestamp of upload time
+</ResponseField>
+
+<ResponseField name="thumbnails" type="list[dict]">
+  List of thumbnail dictionaries with 'url', 'width', 'height'
+</ResponseField>
+
+<ResponseField name="subtitles" type="dict">
+  Dictionary mapping language codes to lists of subtitle format dicts
+</ResponseField>
+
+<ResponseField name="categories" type="list[string]">
+  List of video categories
+</ResponseField>
+
+<ResponseField name="tags" type="list[string]">
+  List of tags
+</ResponseField>
+
+## Working with Playlists
+
+Some extractors handle playlists or channels. These return a different structure:
+
+```python
+import yt_dlp
+
+with yt_dlp.YoutubeDL({'extract_flat': 'in_playlist'}) as ydl:
+    info = ydl.extract_info(
+        'https://www.youtube.com/playlist?list=PLrAXtmErZgOeiKm4sgNOknGvNjby9efdf',
+        download=False
+    )
+    
+    print(f"Playlist: {info['title']}")
+    print(f"Videos: {len(info['entries'])}")
+    
+    for entry in info['entries']:
+        print(f"  - {entry['title']}")
+```
+
+<ResponseField name="_type" type="string">
+  Type of result: 'video', 'playlist', 'multi_video', or 'url'
+</ResponseField>
+
+<ResponseField name="entries" type="list[dict]">
+  For playlists: list of video info dictionaries
+</ResponseField>
+
+<ResponseField name="playlist_title" type="string">
+  Title of the playlist
+</ResponseField>
+
+<ResponseField name="playlist_count" type="int">
+  Total number of videos in playlist
+</ResponseField>
+
+## Extractor Arguments
+
+Some extractors accept additional arguments to customize their behavior:
+
+```python
+import yt_dlp
+
+ydl_opts = {
+    'extractor_args': {
+        'youtube': {
+            'skip': ['dash', 'hls'],  # Skip DASH and HLS formats
+            'player_client': ['android'],  # Use Android client
+        },
+        'generic': {
+            'timeout': ['30'],  # Custom timeout
+        }
+    }
+}
+
+with yt_dlp.YoutubeDL(ydl_opts) as ydl:
+    ydl.download(['https://www.youtube.com/watch?v=dQw4w9WgXcQ'])
+```
+
+Extractor arguments must always be lists of strings, even for single values.
+
+## Common Extractor Examples
+
+### YouTube
+
+```python
+import yt_dlp
+
+ydl_opts = {
+    'format': 'bestvideo[ext=mp4]+bestaudio[ext=m4a]/best[ext=mp4]',
+    'extractor_args': {
+        'youtube': {
+            'skip': ['dash'],  # Skip DASH formats
+        }
+    }
+}
+
+with yt_dlp.YoutubeDL(ydl_opts) as ydl:
+    info = ydl.extract_info('https://www.youtube.com/watch?v=dQw4w9WgXcQ', download=False)
+    print(f"Channel: {info['channel']}")
+    print(f"Subscribers: {info.get('channel_follower_count', 'N/A')}")
+```
+
+### Generic Extractor
+
+The generic extractor can handle many sites by detecting embedded videos:
+
+```python
+import yt_dlp
+
+with yt_dlp.YoutubeDL({}) as ydl:
+    # Will use generic extractor for unsupported sites
+    info = ydl.extract_info('https://example.com/some-video', download=False)
+```
+
+### List Supported Sites
+
+```python
+import yt_dlp
+
+extractors = yt_dlp.list_extractor_classes()
+print(f"Total extractors: {len(list(extractors))}")
+
+# Filter to working extractors only
+working = [ie for ie in yt_dlp.gen_extractor_classes() if ie.working()]
+print(f"Working extractors: {len(working)}")
+```
+
+## Extractor Plugins
+
+You can create custom extractors as plugins. Place them in:
+- `~/.yt-dlp/plugins/extractor/`
+- `${XDG_CONFIG_HOME}/yt-dlp/plugins/extractor/`
+
+Example custom extractor:
+
+```python
+# ~/.yt-dlp/plugins/extractor/mysite.py
+from yt_dlp.extractor.common import InfoExtractor
+
+class MySiteIE(InfoExtractor):
+    _VALID_URL = r'https?://(?:www\.)?mysite\.com/video/(?P<id>[0-9]+)'
+    
+    def _real_extract(self, url):
+        video_id = self._match_id(url)
+        
+        # Fetch and parse the webpage
+        webpage = self._download_webpage(url, video_id)
+        
+        return {
+            'id': video_id,
+            'title': self._html_search_regex(r'<title>(.+?)</title>', webpage, 'title'),
+            'url': self._html_search_regex(r'file: "(.+?)"', webpage, 'video url'),
+        }
+```
+
+## Handling Age-Restricted Content
+
+```python
+import yt_dlp
+
+ydl_opts = {
+    'age_limit': 18,  # Allow content up to this age rating
+}
+
+with yt_dlp.YoutubeDL(ydl_opts) as ydl:
+    # Will filter out content above age limit
+    info = ydl.extract_info(url, download=False)
+```
+
+## Retry Logic
+
+Extractors support automatic retry on failures:
+
+```python
+import yt_dlp
+
+ydl_opts = {
+    'extractor_retries': 3,  # Retry up to 3 times
+    'retry_sleep_functions': {
+        'extractor': lambda n: n * 2,  # Sleep 2n seconds between retries
+    }
+}
+
+with yt_dlp.YoutubeDL(ydl_opts) as ydl:
+    ydl.download([url])
+```

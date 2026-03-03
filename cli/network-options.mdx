@@ -1,0 +1,110 @@
+---
+title: Network Options
+description: Configure network settings, proxies, IP binding, and impersonation for yt-dlp
+---
+
+## Proxy Configuration
+
+<ParamField path="--proxy" type="string">
+  Use the specified HTTP/HTTPS/SOCKS proxy
+  
+  To enable SOCKS proxy, specify a proper scheme, e.g. `socks5://user:pass@127.0.0.1:1080/`
+  
+  Pass in an empty string (`--proxy ""`) for direct connection
+  
+  **Example:**
+  ```bash
+  yt-dlp --proxy "socks5://127.0.0.1:1080" URL
+  yt-dlp --proxy "http://proxy.example.com:8080" URL
+  ```
+</ParamField>
+
+## Connection Settings
+
+<ParamField path="--socket-timeout" type="number">
+  Time to wait before giving up, in seconds
+  
+  **Example:**
+  ```bash
+  yt-dlp --socket-timeout 30 URL
+  ```
+</ParamField>
+
+<ParamField path="--source-address" type="string">
+  Client-side IP address to bind to
+  
+  **Example:**
+  ```bash
+  yt-dlp --source-address 192.168.1.100 URL
+  ```
+</ParamField>
+
+## Impersonation
+
+<ParamField path="--impersonate" type="string">
+  Client to impersonate for requests
+  
+  Format: `CLIENT[:OS]`
+  
+  Pass `--impersonate=""` to impersonate any client.
+  
+  **Note:** Forcing impersonation for all requests may have a detrimental impact on download speed and stability
+  
+  **Example:**
+  ```bash
+  yt-dlp --impersonate chrome URL
+  yt-dlp --impersonate chrome-110 URL
+  yt-dlp --impersonate chrome:windows-10 URL
+  ```
+</ParamField>
+
+<ParamField path="--list-impersonate-targets" type="flag">
+  List available clients to impersonate
+</ParamField>
+
+## IP Version
+
+<ParamField path="-4, --force-ipv4" type="flag">
+  Make all connections via IPv4
+</ParamField>
+
+<ParamField path="-6, --force-ipv6" type="flag">
+  Make all connections via IPv6
+</ParamField>
+
+## File URLs
+
+<ParamField path="--enable-file-urls" type="flag">
+  Enable file:// URLs
+  
+  This is disabled by default for security reasons
+</ParamField>
+
+## Geo-restriction
+
+<ParamField path="--geo-verification-proxy" type="string">
+  Use this proxy to verify the IP address for some geo-restricted sites
+  
+  The default proxy specified by `--proxy` (or none, if the option is not present) is used for the actual downloading
+  
+  **Example:**
+  ```bash
+  yt-dlp --geo-verification-proxy "socks5://127.0.0.1:1080" URL
+  ```
+</ParamField>
+
+<ParamField path="--xff" type="string">
+  How to fake X-Forwarded-For HTTP header to try bypassing geographic restriction
+  
+  Values:
+  - `default` - Only when known to be useful
+  - `never` - Never fake the header
+  - IP block in CIDR notation (e.g., `1.2.3.4/24`)
+  - Two-letter ISO 3166-2 country code (e.g., `US`)
+  
+  **Example:**
+  ```bash
+  yt-dlp --xff "US" URL
+  yt-dlp --xff "1.2.3.4/24" URL
+  ```
+</ParamField>

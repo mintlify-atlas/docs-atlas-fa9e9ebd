@@ -1,0 +1,161 @@
+---
+title: Supported Sites
+description: Complete list of video platforms and sites supported by yt-dlp
+icon: globe
+---
+
+yt-dlp supports downloading from thousands of websites through its extractor system. This page explains how site support works and provides access to the complete list.
+
+## Extractor System
+
+yt-dlp uses **extractors** to download videos from different websites. Each extractor is specifically designed to handle one or more related sites.
+
+### How Extractors Work
+
+When you provide a URL to yt-dlp:
+
+1. **Pattern Matching**: yt-dlp checks the URL against patterns for known extractors
+2. **Site-Specific Extraction**: The matching extractor fetches video metadata and download URLs
+3. **Fallback Options**: If no specific extractor matches, yt-dlp tries:
+   - Embed extraction (for embedded videos)
+   - Generic extractor (for standard HTML5 videos)
+
+<Info>
+Not all sites listed are guaranteed to work at all times. Websites frequently change their structure, which can temporarily break support until yt-dlp is updated.
+</Info>
+
+### Checking Site Support
+
+The most reliable way to check if a site is supported is to try downloading:
+
+```bash
+yt-dlp --simulate https://example.com/video
+```
+
+This will test the URL without actually downloading the video.
+
+## Extractor Features
+
+Different extractors support different features:
+
+<AccordionGroup>
+  <Accordion title="Single Videos">
+    Most extractors support downloading individual videos from their URLs.
+  </Accordion>
+
+  <Accordion title="Playlists">
+    Many extractors include playlist support (indicated by `:playlist` suffix in the extractor name).
+    
+    ```bash
+    yt-dlp https://youtube.com/playlist?list=PLAYLIST_ID
+    ```
+  </Accordion>
+
+  <Accordion title="Channels & Users">
+    Some extractors can download all videos from a user or channel (indicated by `:user` or `:channel` suffix).
+    
+    ```bash
+    yt-dlp https://youtube.com/@username
+    ```
+  </Accordion>
+
+  <Accordion title="Search Results">
+    Certain extractors support search queries (indicated by `:search` suffix).
+    
+    ```bash
+    yt-dlp "ytsearch5:search term"
+    ```
+  </Accordion>
+
+  <Accordion title="Live Streams">
+    Some extractors can download live streams (indicated by `:live` suffix).
+    
+    ```bash
+    yt-dlp --live-from-start https://youtube.com/watch?v=LIVE_ID
+    ```
+  </Accordion>
+</AccordionGroup>
+
+## Authentication Required
+
+Some extractors require login credentials for access. These are marked with a netrc machine name in the full list.
+
+<Note>
+To use authenticated extractors, set up credentials using the `--username` and `--password` options, or configure a `.netrc` file. See the [Authentication](/configuration/authentication) guide for details.
+</Note>
+
+## Currently Broken Extractors
+
+Extractors marked as **"Currently broken"** are known to have issues. These typically require updates to adapt to website changes.
+
+<Warning>
+Before reporting an issue with a broken extractor, update to the latest nightly build:
+
+```bash
+yt-dlp --update-to nightly
+```
+
+Many broken extractors are fixed quickly in development builds.
+</Warning>
+
+## Listing Extractors
+
+You can view all available extractors directly from the command line:
+
+```bash
+# List all extractor names
+yt-dlp --list-extractors
+
+# Show extractor descriptions
+yt-dlp --extractor-descriptions
+```
+
+## Using Specific Extractors
+
+You can force yt-dlp to use (or exclude) specific extractors:
+
+```bash
+# Use only YouTube extractor
+yt-dlp --use-extractors youtube URL
+
+# Exclude generic extractor
+yt-dlp --use-extractors default,-generic URL
+```
+
+## Complete Supported Sites List
+
+For the most up-to-date and complete list of all supported sites and extractors, see:
+
+<Card title="View Full List" icon="list" href="https://github.com/yt-dlp/yt-dlp/blob/master/supportedsites.md">
+  The complete list includes over 1,700 extractors supporting thousands of websites
+</Card>
+
+### Major Platforms Supported
+
+yt-dlp includes robust support for major video platforms:
+
+- **YouTube** - Videos, playlists, channels, live streams, shorts, stories
+- **Twitch** - VODs, clips, live streams
+- **Vimeo** - Videos, albums, channels, groups
+- **Facebook** - Videos, reels, stories
+- **TikTok** - Videos, user profiles, live streams
+- **Twitter/X** - Videos, spaces
+- **Instagram** - Videos, stories, reels
+- **Reddit** - Videos and media posts
+- **Dailymotion** - Videos, playlists, users
+- **SoundCloud** - Tracks, playlists, users
+- **Pornhub** - Videos, playlists, channels (authentication supported)
+
+And many, many more!
+
+## Adding New Sites
+
+If you need support for a site that isn't currently available:
+
+1. Check if it's already requested in [GitHub Issues](https://github.com/yt-dlp/yt-dlp/issues)
+2. If not, open a new site request issue
+3. For developers: See the [extractor development guide](https://github.com/yt-dlp/yt-dlp#adding-support-for-a-new-site)
+
+<Note>
+Site support requests are handled by volunteers. Complex sites or those requiring authentication may take longer to implement.
+</Note>

@@ -1,0 +1,552 @@
+---
+title: Authentication
+description: Configure authentication for yt-dlp using netrc files, cookies, and login credentials to access private or premium content
+---
+
+yt-dlp supports various authentication methods to access content that requires login credentials. This includes private videos, premium content, and age-restricted material.
+
+## Authentication Methods
+
+yt-dlp supports multiple authentication approaches:
+
+<Tabs>
+  <Tab title="Netrc File">
+    Store credentials in a `.netrc` file for automatic authentication
+  </Tab>
+  <Tab title="Cookies">
+    Use browser cookies for sites requiring complex authentication
+  </Tab>
+  <Tab title="Command Line">
+    Provide credentials directly via command line options
+  </Tab>
+  <Tab title="Certificates">
+    Use client certificates for sites requiring certificate-based auth
+  </Tab>
+</Tabs>
+
+## Using Netrc Files
+
+The `.netrc` file is a standard way to store credentials for automatic login.
+
+### Creating a Netrc File
+
+<CodeGroup>
+```bash Linux/macOS
+# Create the file
+touch ${HOME}/.netrc
+
+# Set secure permissions (read/write for owner only)
+chmod 600 ${HOME}/.netrc
+```
+
+```powershell Windows
+# Create the file in your home directory
+New-Item -Path "$env:USERPROFILE\_netrc" -ItemType File
+
+# Or use .netrc (note the leading dot)
+New-Item -Path "$env:USERPROFILE\.netrc" -ItemType File
+```
+</CodeGroup>
+
+### Netrc File Format
+
+Add credentials in this format:
+
+```
+machine <extractor> login <username> password <password>
+```
+
+Where `<extractor>` is the lowercase name of the extractor.
+
+### Example Netrc File
+
+<CodeGroup>
+```text ~/.netrc (Linux/macOS)
+machine youtube login myaccount@gmail.com password my_youtube_password
+machine twitch login my_twitch_account_name password my_twitch_password
+machine vimeo login user@example.com password vimeo_pass123
+```
+
+```text %USERPROFILE%\_netrc (Windows)
+machine youtube login myaccount@gmail.com password my_youtube_password
+machine twitch login my_twitch_account_name password my_twitch_password
+```
+</CodeGroup>
+
+### Enabling Netrc Authentication
+
+Activate netrc authentication with the `--netrc` flag:
+
+```bash
+# Use default netrc location (~/.netrc)
+yt-dlp --netrc URL
+
+# Specify custom netrc location
+yt-dlp --netrc-location /path/to/custom/.netrc URL
+
+# Specify directory containing .netrc
+yt-dlp --netrc-location /path/to/directory/ URL
+```
+
+<Note>
+The default netrc location is `~/.netrc` on Linux/macOS and `%USERPROFILE%\_netrc` or `%USERPROFILE%\.netrc` on Windows.
+</Note>
+
+### Netrc in Configuration File
+
+Add to your yt-dlp config to always use netrc:
+
+```bash
+# ~/.config/yt-dlp/config
+--netrc
+
+# Or with custom location
+--netrc-location ~/.config/yt-dlp/.netrc
+```
+
+## Encrypted Netrc with GPG
+
+For enhanced security, encrypt your netrc file:
+
+### Create Encrypted Netrc
+
+```bash
+# Create and edit .authinfo file
+nano ~/.authinfo
+
+# Add credentials (same format as .netrc)
+machine youtube login myaccount@gmail.com password my_youtube_password
+
+# Encrypt with GPG
+gpg -c ~/.authinfo
+# This creates ~/.authinfo.gpg
+
+# Remove unencrypted file
+rm ~/.authinfo
+```
+
+### Use Encrypted Netrc
+
+Use `--netrc-cmd` to decrypt on-the-fly:
+
+```bash
+yt-dlp --netrc-cmd 'gpg --decrypt ~/.authinfo.gpg' URL
+```
+
+### Custom Netrc Command
+
+The `--netrc-cmd` can execute any command that outputs credentials in netrc format:
+
+```bash
+# Password manager integration
+yt-dlp --netrc-cmd 'pass show yt-dlp/credentials' URL
+
+# Custom script
+yt-dlp --netrc-cmd '/path/to/get-credentials.sh {}' URL
+```
+
+The `{}` placeholder is replaced with the extractor name.
+
+<Info>
+The command must:
+- Output credentials in netrc format
+- Return exit code 0 on success
+- Return non-zero on failure
+</Info>
+
+## Browser Cookies
+
+Extract and use cookies from your browser to authenticate:
+
+### Supported Browsers
+
+- `brave`
+- `chrome`
+- `chromium`
+- `edge`
+- `firefox`
+- `opera`
+- `safari`
+- `vivaldi`
+- `whale`
+
+### Cookie Extraction Syntax
+
+```
+--cookies-from-browser BROWSER[+KEYRING][:PROFILE][::CONTAINER]
+```
+
+<Tabs>
+  <Tab title="Basic Usage">
+    ```bash
+    # Extract from default Firefox profile
+    yt-dlp --cookies-from-browser firefox URL
+
+    # Extract from default Chrome profile
+    yt-dlp --cookies-from-browser chrome URL
+
+    # Extract from Safari
+    yt-dlp --cookies-from-browser safari URL
+    ```
+  </Tab>
+  <Tab title="Specific Profile">
+    ```bash
+    # Use specific Chrome profile
+    yt-dlp --cookies-from-browser chrome:Profile1 URL
+
+    # Use Firefox profile by path
+    yt-dlp --cookies-from-browser firefox:/path/to/profile URL
+
+    # Use profile name
+    yt-dlp --cookies-from-browser firefox:default-release URL
+    ```
+  </Tab>
+  <Tab title="Linux Keyring">
+    ```bash
+    # Specify keyring for Chromium cookies on Linux
+    yt-dlp --cookies-from-browser chrome+gnomekeyring URL
+
+    # Available keyrings:
+    # - basictext
+    # - gnomekeyring
+    # - kwallet
+    # - kwallet5
+    # - kwallet6
+    ```
+  </Tab>
+  <Tab title="Firefox Container">
+    ```bash
+    # Use specific Firefox container
+    yt-dlp --cookies-from-browser firefox:default::Personal URL
+
+    # Use no container
+    yt-dlp --cookies-from-browser firefox:default::none URL
+
+    # Use all containers (default)
+    yt-dlp --cookies-from-browser firefox URL
+    ```
+  </Tab>
+</Tabs>
+
+### Cookie File Export
+
+You can also export cookies to a file:
+
+```bash
+# Export cookies to Netscape format
+yt-dlp --cookies cookies.txt URL
+
+# Use exported cookies
+yt-dlp --cookies /path/to/cookies.txt URL
+```
+
+<Note>
+Browser cookie extraction requires the browser to be closed or may require additional permissions on some systems.
+</Note>
+
+## Command Line Authentication
+
+Provide credentials directly via command line:
+
+### Basic Authentication
+
+```bash
+# Username and password
+yt-dlp --username USERNAME --password PASSWORD URL
+
+# Short form
+yt-dlp -u USERNAME -p PASSWORD URL
+
+# Prompt for password (more secure)
+yt-dlp -u USERNAME URL
+# yt-dlp will prompt: "PASSWORD:"
+```
+
+### Two-Factor Authentication
+
+```bash
+# Provide 2FA code
+yt-dlp -u USERNAME -p PASSWORD --twofactor 123456 URL
+
+# Short form
+yt-dlp -u USERNAME -p PASSWORD -2 123456 URL
+```
+
+### Video-Specific Password
+
+Some videos require a specific password:
+
+```bash
+# Video password (not account password)
+yt-dlp --video-password VIDEO_PASSWORD URL
+```
+
+<Note>
+Providing passwords on the command line is less secure as they may be visible in shell history. Use netrc files or be prompted for passwords instead.
+</Note>
+
+## Adobe Pass Authentication
+
+For sites using Adobe Pass (TV provider authentication):
+
+```bash
+# List available TV providers
+yt-dlp --ap-list-mso
+
+# Authenticate with TV provider
+yt-dlp --ap-mso PROVIDER_ID --ap-username USERNAME --ap-password PASSWORD URL
+
+# Example with Spectrum
+yt-dlp --ap-mso Spectrum --ap-username user@example.com URL
+```
+
+## Client Certificates
+
+For sites requiring SSL/TLS client certificates:
+
+### Certificate File
+
+```bash
+# PEM file with certificate (and optionally private key)
+yt-dlp --client-certificate /path/to/cert.pem URL
+```
+
+### Separate Key File
+
+```bash
+# Certificate and separate private key
+yt-dlp --client-certificate /path/to/cert.pem \
+       --client-certificate-key /path/to/key.pem URL
+```
+
+### Encrypted Private Key
+
+```bash
+# Provide password for encrypted key
+yt-dlp --client-certificate cert.pem \
+       --client-certificate-key key.pem \
+       --client-certificate-password KEY_PASSWORD URL
+
+# Prompt for password
+yt-dlp --client-certificate cert.pem \
+       --client-certificate-key key.pem URL
+# yt-dlp will prompt for password if key is encrypted
+```
+
+## Practical Examples
+
+<CodeGroup>
+```bash YouTube with Netrc
+# ~/.netrc
+machine youtube login your-email@gmail.com password your-app-password
+
+# Download with authentication
+yt-dlp --netrc 'https://www.youtube.com/watch?v=PRIVATE_VIDEO'
+```
+
+```bash Twitch with Browser Cookies
+# Use cookies from Firefox
+yt-dlp --cookies-from-browser firefox 'https://www.twitch.tv/videos/SUBSCRIBER_ONLY'
+
+# Use cookies from Chrome with specific profile
+yt-dlp --cookies-from-browser chrome:"Profile 1" 'https://www.twitch.tv/videos/VIDEO_ID'
+```
+
+```bash Vimeo Premium with Cookie File
+# Export cookies from browser extension (e.g., "Get cookies.txt")
+# Then use the file:
+yt-dlp --cookies vimeo-cookies.txt 'https://vimeo.com/PREMIUM_VIDEO'
+```
+
+```bash Age-Restricted with Login
+# YouTube age-restricted content
+yt-dlp --cookies-from-browser chrome 'https://www.youtube.com/watch?v=AGE_RESTRICTED'
+
+# Or with netrc
+yt-dlp --netrc 'https://www.youtube.com/watch?v=AGE_RESTRICTED'
+```
+
+```bash Encrypted Credentials
+# Using encrypted netrc with GPG
+yt-dlp --netrc-cmd 'gpg --quiet --decrypt ~/.authinfo.gpg' URL
+
+# In config file for permanent setup:
+# ~/.config/yt-dlp/config
+--netrc-cmd
+gpg --quiet --decrypt ~/.authinfo.gpg
+```
+</CodeGroup>
+
+## Configuration File Setup
+
+Set authentication options in your config file:
+
+<CodeGroup>
+```bash Netrc Config
+# ~/.config/yt-dlp/config
+
+# Always use netrc
+--netrc
+
+# Or custom location
+--netrc-location ~/.config/yt-dlp/.netrc
+```
+
+```bash Cookie Config
+# ~/.config/yt-dlp/config
+
+# Always use Firefox cookies
+--cookies-from-browser firefox
+
+# Or specific profile
+--cookies-from-browser "chrome:Profile 1"
+```
+
+```bash Combined Config
+# ~/.config/yt-dlp/config
+
+# Use netrc by default
+--netrc
+
+# Also support cookie file
+--cookies ~/yt-dlp-cookies.txt
+
+# Can override with command line:
+# yt-dlp --cookies-from-browser firefox URL
+```
+</CodeGroup>
+
+## Security Best Practices
+
+### Secure Netrc Files
+
+```bash
+# Set restrictive permissions (Unix/Linux/macOS)
+chmod 600 ~/.netrc
+
+# Verify permissions
+ls -l ~/.netrc
+# Should show: -rw------- (owner read/write only)
+```
+
+### Avoid Command Line Passwords
+
+<CodeGroup>
+```bash ❌ Bad - Password Visible
+# Appears in shell history and process list
+yt-dlp -u user -p "my_password" URL
+```
+
+```bash ✅ Good - Prompted Password
+# Password not stored in history
+yt-dlp -u user URL
+# (enters password when prompted)
+```
+
+```bash ✅ Better - Netrc File
+# Credentials stored securely in file
+yt-dlp --netrc URL
+```
+
+```bash ✅ Best - Encrypted Netrc
+# Encrypted credentials
+yt-dlp --netrc-cmd 'gpg --decrypt ~/.authinfo.gpg' URL
+```
+</CodeGroup>
+
+### Browser Cookie Security
+
+<Info>
+When using `--cookies-from-browser`, be aware that:
+- Cookies contain session tokens that could be hijacked
+- Some sites may track unusual activity
+- Consider using a dedicated browser profile for downloads
+</Info>
+
+## Troubleshooting
+
+### Authentication Failures
+
+```bash
+# Test with verbose output
+yt-dlp --verbose --netrc URL
+
+# Check if netrc is being read
+yt-dlp --verbose --netrc URL 2>&1 | grep -i netrc
+
+# Verify netrc format
+cat ~/.netrc
+# Should have: machine <extractor> login <user> password <pass>
+```
+
+### Cookie Extraction Issues
+
+```bash
+# List browser profiles
+yt-dlp --cookies-from-browser firefox --verbose URL 2>&1 | grep -i profile
+
+# Close browser before extracting
+# Some systems require browser to be closed
+
+# Try different browser
+yt-dlp --cookies-from-browser chrome URL
+```
+
+### Permission Errors
+
+```bash
+# Fix netrc permissions
+chmod 600 ~/.netrc
+
+# Check file ownership
+ls -l ~/.netrc
+# Should be owned by you
+```
+
+### Extractor Names
+
+Find the correct extractor name:
+
+```bash
+# List all extractors
+yt-dlp --list-extractors | grep -i youtube
+
+# Use lowercase name in netrc
+# E.g., "YouTube" becomes "youtube" in .netrc
+```
+
+## Advanced Authentication
+
+### Multiple Accounts
+
+```bash
+# Use different netrc files for different accounts
+yt-dlp --netrc-location ~/.netrc.personal URL1
+yt-dlp --netrc-location ~/.netrc.work URL2
+```
+
+### Conditional Authentication
+
+Use shell scripting for conditional auth:
+
+```bash
+#!/bin/bash
+if [[ $1 == *"youtube"* ]]; then
+    yt-dlp --netrc "$1"
+elif [[ $1 == *"twitch"* ]]; then
+    yt-dlp --cookies-from-browser firefox "$1"
+else
+    yt-dlp "$1"
+fi
+```
+
+### Session Management
+
+Some sites require session tokens:
+
+```bash
+# Use cookie file for session persistence
+yt-dlp --cookies session.txt --cookies-from-browser firefox URL
+
+# Cookies are updated in the file for next use
+```

@@ -1,0 +1,355 @@
+---
+title: Post-processing Options
+description: Audio extraction, video conversion, metadata embedding, and FFmpeg configuration
+---
+
+## Audio Extraction
+
+<ParamField path="-x, --extract-audio" type="flag">
+  Convert video files to audio-only files
+  
+  Requires ffmpeg and ffprobe
+</ParamField>
+
+<ParamField path="--audio-format" type="string" default="best">
+  Format to convert the audio to when `-x` is used
+  
+  Supported formats: `best`, `aac`, `alac`, `flac`, `m4a`, `mp3`, `opus`, `vorbis`, `wav`
+  
+  You can specify multiple rules using similar syntax as `--remux-video`
+  
+  **Example:**
+  ```bash
+  yt-dlp -x --audio-format mp3 URL
+  yt-dlp -x --audio-format "flac/mp3" URL
+  ```
+</ParamField>
+
+<ParamField path="--audio-quality" type="string" default="5">
+  Specify ffmpeg audio quality to use when converting the audio with `-x`
+  
+  Insert a value between 0 (best) and 10 (worst) for VBR or a specific bitrate like 128K
+  
+  **Example:**
+  ```bash
+  yt-dlp -x --audio-quality 0 URL
+  yt-dlp -x --audio-quality 128K URL
+  ```
+</ParamField>
+
+## Video Format Conversion
+
+<ParamField path="--remux-video" type="string">
+  Remux the video into another container if necessary
+  
+  Supported formats: `avi`, `flv`, `gif`, `mkv`, `mov`, `mp4`, `webm`, `aac`, `aiff`, `alac`, `flac`, `m4a`, `mka`, `mp3`, `ogg`, `opus`, `vorbis`, `wav`
+  
+  If the target container does not support the video/audio codec, remuxing will fail.
+  
+  You can specify multiple rules; e.g. "aac>m4a/mov>mp4/mkv" will remux aac to m4a, mov to mp4 and anything else to mkv
+  
+  **Example:**
+  ```bash
+  yt-dlp --remux-video mkv URL
+  yt-dlp --remux-video "aac>m4a/mov>mp4/mkv" URL
+  ```
+</ParamField>
+
+<ParamField path="--recode-video" type="string">
+  Re-encode the video into another format if necessary
+  
+  The syntax and supported formats are the same as `--remux-video`
+  
+  **Example:**
+  ```bash
+  yt-dlp --recode-video mp4 URL
+  ```
+</ParamField>
+
+## Postprocessor Arguments
+
+<ParamField path="--postprocessor-args" type="string">
+  Give these arguments to the postprocessors
+  
+  Format: `NAME:ARGS`
+  
+  Specify the postprocessor/executable name and the arguments separated by a colon ":"
+  
+  Supported PP: `Merger`, `ModifyChapters`, `SplitChapters`, `ExtractAudio`, `VideoRemuxer`, `VideoConvertor`, `Metadata`, `EmbedSubtitle`, `EmbedThumbnail`, `SubtitlesConvertor`, `ThumbnailsConvertor`, `FixupStretched`, `FixupM4a`, `FixupM3u8`, `FixupTimestamp`, `FixupDuration`
+  
+  Supported executables: `AtomicParsley`, `FFmpeg`, `FFprobe`
+  
+  You can also specify "PP+EXE:ARGS" to give the arguments to the specified executable only when being used by the specified postprocessor.
+  
+  For ffmpeg/ffprobe, "_i"/"_o" can be appended to the prefix optionally followed by a number to pass the argument before the specified input/output file.
+  
+  Alias: `--ppa`
+  
+  **Example:**
+  ```bash
+  yt-dlp --ppa "Merger+ffmpeg_i1:-v quiet" URL
+  yt-dlp --ppa "FFmpeg:-threads 4" URL
+  ```
+</ParamField>
+
+<ParamField path="-k, --keep-video" type="flag">
+  Keep the intermediate video file on disk after post-processing
+</ParamField>
+
+<ParamField path="--no-keep-video" type="flag" default="true">
+  Delete the intermediate video file after post-processing
+</ParamField>
+
+<ParamField path="--post-overwrites" type="flag" default="true">
+  Overwrite post-processed files
+</ParamField>
+
+<ParamField path="--no-post-overwrites" type="flag">
+  Do not overwrite post-processed files
+</ParamField>
+
+## Embedding
+
+<ParamField path="--embed-subs" type="flag">
+  Embed subtitles in the video (only for mp4, webm and mkv videos)
+</ParamField>
+
+<ParamField path="--no-embed-subs" type="flag" default="true">
+  Do not embed subtitles
+</ParamField>
+
+<ParamField path="--embed-thumbnail" type="flag">
+  Embed thumbnail in the video as cover art
+</ParamField>
+
+<ParamField path="--no-embed-thumbnail" type="flag" default="true">
+  Do not embed thumbnail
+</ParamField>
+
+<ParamField path="--embed-metadata" type="flag">
+  Embed metadata to the video file
+  
+  Also embeds chapters/infojson if present unless `--no-embed-chapters`/`--no-embed-info-json` are used
+  
+  Alias: `--add-metadata`
+</ParamField>
+
+<ParamField path="--no-embed-metadata" type="flag" default="true">
+  Do not add metadata to file
+  
+  Alias: `--no-add-metadata`
+</ParamField>
+
+<ParamField path="--embed-chapters" type="flag">
+  Add chapter markers to the video file
+  
+  Alias: `--add-chapters`
+</ParamField>
+
+<ParamField path="--no-embed-chapters" type="flag" default="true">
+  Do not add chapter markers
+  
+  Alias: `--no-add-chapters`
+</ParamField>
+
+<ParamField path="--embed-info-json" type="flag">
+  Embed the infojson as an attachment to mkv/mka video files
+</ParamField>
+
+<ParamField path="--no-embed-info-json" type="flag">
+  Do not embed the infojson as an attachment to the video file
+</ParamField>
+
+## Metadata Parsing
+
+<ParamField path="--parse-metadata" type="string">
+  Parse additional metadata like title/artist from other fields
+  
+  Format: `[WHEN:]FROM:TO`
+  
+  See "MODIFYING METADATA" for details. Supported values of "WHEN" are the same as that of `--use-postprocessor` (default: `pre_process`)
+  
+  **Example:**
+  ```bash
+  yt-dlp --parse-metadata "title:%(artist)s - %(title)s" URL
+  ```
+</ParamField>
+
+<ParamField path="--replace-in-metadata" type="string">
+  Replace text in a metadata field using the given regex
+  
+  Format: `[WHEN:]FIELDS REGEX REPLACE`
+  
+  This option can be used multiple times. Supported values of "WHEN" are the same as that of `--use-postprocessor` (default: `pre_process`)
+  
+  **Example:**
+  ```bash
+  yt-dlp --replace-in-metadata "title" "\\[.*?\\]" "" URL
+  ```
+</ParamField>
+
+<ParamField path="--xattrs" type="flag">
+  Write metadata to the video file's xattrs (using Dublin Core and XDG standards)
+</ParamField>
+
+## Playlist Concatenation
+
+<ParamField path="--concat-playlist" type="string">
+  Concatenate videos in a playlist
+  
+  Values:
+  - `never`
+  - `always`
+  - `multi_video` (default) - Only when the videos form a single show
+  
+  All the video files must have the same codecs and number of streams to be concatenable. The "pl_video:" prefix can be used with `--paths` and `--output` to set the output filename for the concatenated files.
+  
+  See "OUTPUT TEMPLATE" for details
+</ParamField>
+
+## Fixup Policy
+
+<ParamField path="--fixup" type="string">
+  Automatically correct known faults of the file
+  
+  Values:
+  - `never` - Do nothing
+  - `warn` - Only emit a warning
+  - `detect_or_warn` (default) - Fix the file if we can, warn otherwise
+  - `force` - Try fixing even if the file already exists
+</ParamField>
+
+## FFmpeg Location
+
+<ParamField path="--ffmpeg-location" type="string">
+  Location of the ffmpeg binary; either the path to the binary or its containing directory
+  
+  **Example:**
+  ```bash
+  yt-dlp --ffmpeg-location /usr/local/bin/ffmpeg URL
+  yt-dlp --ffmpeg-location /usr/local/bin URL
+  ```
+</ParamField>
+
+## Execute Command
+
+<ParamField path="--exec" type="string">
+  Execute a command, optionally prefixed with when to execute it
+  
+  Format: `[WHEN:]CMD`
+  
+  Supported values of "WHEN" are the same as that of `--use-postprocessor` (default: `after_move`)
+  
+  The same syntax as the output template can be used to pass any field as arguments to the command. If no fields are passed, `%(filepath,_filename|)q` is appended to the end of the command.
+  
+  This option can be used multiple times.
+  
+  **Example:**
+  ```bash
+  yt-dlp --exec "echo Downloaded: {}" URL
+  yt-dlp --exec after_video:"notify-send 'Download complete'" URL
+  ```
+</ParamField>
+
+<ParamField path="--no-exec" type="flag">
+  Remove any previously defined `--exec`
+</ParamField>
+
+## Format Conversion
+
+<ParamField path="--convert-subs" type="string">
+  Convert the subtitles to another format
+  
+  Currently supported: `ass`, `lrc`, `srt`, `vtt`
+  
+  Use `--convert-subs none` to disable conversion (default)
+  
+  Alias: `--convert-subtitles`
+  
+  **Example:**
+  ```bash
+  yt-dlp --convert-subs srt URL
+  ```
+</ParamField>
+
+<ParamField path="--convert-thumbnails" type="string">
+  Convert the thumbnails to another format
+  
+  Currently supported: `jpg`, `png`, `webp`
+  
+  You can specify multiple rules using similar syntax as `--remux-video`.
+  
+  Use `--convert-thumbnails none` to disable conversion (default)
+  
+  **Example:**
+  ```bash
+  yt-dlp --convert-thumbnails jpg URL
+  yt-dlp --convert-thumbnails "webp>jpg/png" URL
+  ```
+</ParamField>
+
+## Chapter Handling
+
+<ParamField path="--split-chapters" type="flag">
+  Split video into multiple files based on internal chapters
+  
+  The "chapter:" prefix can be used with `--paths` and `--output` to set the output filename for the split files.
+  
+  See "OUTPUT TEMPLATE" for details
+</ParamField>
+
+<ParamField path="--no-split-chapters" type="flag" default="true">
+  Do not split video based on chapters
+</ParamField>
+
+<ParamField path="--remove-chapters" type="string">
+  Remove chapters whose title matches the given regular expression
+  
+  The syntax is the same as `--download-sections`. This option can be used multiple times.
+  
+  **Example:**
+  ```bash
+  yt-dlp --remove-chapters "sponsor" URL
+  ```
+</ParamField>
+
+<ParamField path="--no-remove-chapters" type="flag" default="true">
+  Do not remove any chapters from the file
+</ParamField>
+
+<ParamField path="--force-keyframes-at-cuts" type="flag">
+  Force keyframes at cuts when downloading/splitting/removing sections
+  
+  This is slow due to needing a re-encode, but the resulting video may have fewer artifacts around the cuts
+</ParamField>
+
+<ParamField path="--no-force-keyframes-at-cuts" type="flag" default="true">
+  Do not force keyframes around the chapters when cutting/splitting
+</ParamField>
+
+## Custom Postprocessors
+
+<ParamField path="--use-postprocessor" type="string">
+  The (case-sensitive) name of plugin postprocessors to be enabled, and (optionally) arguments to be passed to it
+  
+  Format: `NAME[:ARGS]`
+  
+  ARGS are a semicolon ";" delimited list of NAME=VALUE.
+  
+  The "when" argument determines when the postprocessor is invoked. It can be one of:
+  - `pre_process` - After video extraction
+  - `after_filter` - After video passes filter
+  - `video` - After --format; before --print/--output
+  - `before_dl` - Before each video download
+  - `post_process` (default) - After each video download
+  - `after_move` - After moving the video file to its final location
+  - `after_video` - After downloading and processing all formats of a video
+  - `playlist` - At end of playlist
+  
+  This option can be used multiple times to add different postprocessors.
+  
+  **Example:**
+  ```bash
+  yt-dlp --use-postprocessor "FFmpegMetadata:when=pre_process" URL
+  ```
+</ParamField>

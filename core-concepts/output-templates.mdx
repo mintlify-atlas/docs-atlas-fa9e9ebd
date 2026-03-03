@@ -1,0 +1,455 @@
+---
+title: Output Templates
+description: Customize output file names using yt-dlp's powerful template system with metadata fields and formatting options
+---
+
+The `-o` option controls output file names while `-P` specifies the path where files should be saved. Output templates allow you to dynamically name files based on video metadata.
+
+## Basic Usage
+
+### Simple Templates
+
+The simplest usage is a literal filename:
+
+```bash
+# Hard-coded filename (not recommended)
+yt-dlp -o "funny_video.mp4" URL
+
+# Default template
+yt-dlp URL  # Uses: %(title)s [%(id)s].%(ext)s
+```
+
+<Note>
+Hard-coding file extensions is not recommended as it may break post-processing. Use `%(ext)s` to use the correct extension automatically.
+</Note>
+
+### Template Syntax
+
+Templates use **Python string formatting** with special sequences:
+
+```
+%(field_name)s
+```
+
+Sequences are replaced with actual values when downloading:
+
+```bash
+# Template: %(title)s-%(id)s.%(ext)s
+# Result: yt-dlp test video-BaW_jenozKc.mp4
+yt-dlp -o "%(title)s-%(id)s.%(ext)s" URL
+```
+
+## Available Fields
+
+### Basic Video Information
+
+<Tabs>
+  <Tab title="Identity">
+    - `id` - Video identifier
+    - `title` - Video title
+    - `fulltitle` - Video title ignoring live timestamp
+    - `ext` - Video file extension
+    - `display_id` - Alternative identifier
+    - `description` - Video description
+  </Tab>
+  <Tab title="Uploader">
+    - `uploader` - Full name of video uploader
+    - `uploader_id` - Nickname or ID of uploader
+    - `uploader_url` - URL to uploader's profile
+    - `channel` - Full name of the channel
+    - `channel_id` - Channel identifier
+    - `channel_url` - URL of the channel
+  </Tab>
+  <Tab title="Dates">
+    - `upload_date` - Upload date (YYYYMMDD)
+    - `timestamp` - UNIX timestamp of upload
+    - `release_date` - Release date (YYYYMMDD)
+    - `release_timestamp` - UNIX timestamp of release
+    - `modified_date` - Last modification date (YYYYMMDD)
+  </Tab>
+  <Tab title="Statistics">
+    - `view_count` - Number of views
+    - `like_count` - Number of likes
+    - `dislike_count` - Number of dislikes
+    - `comment_count` - Number of comments
+    - `duration` - Length in seconds
+    - `duration_string` - Length (HH:mm:ss format)
+  </Tab>
+</Tabs>
+
+### Playlist Information
+
+- `playlist` - Playlist title or ID
+- `playlist_id` - Playlist identifier
+- `playlist_title` - Name of the playlist
+- `playlist_index` - Position in playlist (padded)
+- `playlist_count` - Total items in playlist
+- `playlist_uploader` - Playlist uploader name
+- `n_entries` - Total extracted items
+
+### Media Metadata
+
+<Tabs>
+  <Tab title="Video">
+    - `width` - Video width
+    - `height` - Video height
+    - `fps` - Frame rate
+    - `vcodec` - Video codec
+    - `vbr` - Video bitrate
+  </Tab>
+  <Tab title="Audio">
+    - `acodec` - Audio codec
+    - `abr` - Audio bitrate
+    - `asr` - Audio sample rate
+    - `audio_channels` - Number of channels
+  </Tab>
+  <Tab title="Series/Music">
+    - `series` - Series title
+    - `season_number` - Season number
+    - `episode` - Episode title
+    - `episode_number` - Episode number
+    - `track` - Track title
+    - `artist` - Artist name
+    - `album` - Album title
+  </Tab>
+</Tabs>
+
+### Special Fields
+
+- `webpage_url` - URL to the video webpage
+- `epoch` - UNIX epoch when info was extracted
+- `autonumber` - Auto-incrementing number (padded to 5 digits)
+- `format_id` - Format identifier
+- `resolution` - Textual resolution description
+
+<Info>
+Use `-j` to see all available fields for a particular URL:
+```bash
+yt-dlp -j URL | jq
+```
+</Info>
+
+## Advanced Formatting
+
+### Object Traversal
+
+Access nested fields using dot notation:
+
+```bash
+# Access first tag
+yt-dlp -o "%(tags.0)s - %(title)s.%(ext)s" URL
+
+# Access subtitle information
+yt-dlp -o "%(subtitles.en.-1.ext)s" URL
+```
+
+Python slicing with colons:
+
+```bash
+# Characters 3-7 of video ID
+yt-dlp -o "%(id.3:7)s.%(ext)s" URL
+
+# All format IDs
+yt-dlp --print "%(formats.:.format_id)s" URL
+```
+
+### Numeric Formatting
+
+Use Python's printf-style formatting:
+
+```bash
+# Pad view count with zeros (5 digits)
+yt-dlp -o "%(view_count)05d - %(title)s.%(ext)s" URL
+# Result: 00042 - Video Title.mp4
+
+# Playlist index (3 digits)
+yt-dlp -o "%(playlist_index)03d - %(title)s.%(ext)s" URL
+# Result: 001 - First Video.mp4
+```
+
+### Date/Time Formatting
+
+Format dates using `>` separator with strftime codes:
+
+<CodeGroup>
+```bash Year Only
+yt-dlp -o "%(upload_date>%Y)s/%(title)s.%(ext)s" URL
+# Result: 2024/Video Title.mp4
+```
+
+```bash Full Date
+yt-dlp -o "%(upload_date>%Y-%m-%d)s - %(title)s.%(ext)s" URL
+# Result: 2024-03-15 - Video Title.mp4
+```
+
+```bash Duration
+yt-dlp -o "%(duration>%H-%M-%S)s.%(ext)s" URL
+# Result: 01-23-45.mp4
+```
+</CodeGroup>
+
+### Alternatives
+
+Provide fallback fields using `,` separator:
+
+```bash
+# Use release_date, fallback to upload_date, default to "Unknown"
+yt-dlp -o "%(release_date>%Y,upload_date>%Y|Unknown)s/%(title)s.%(ext)s" URL
+```
+
+### Replacement Values
+
+Use `&` separator to replace non-empty fields:
+
+```bash
+# Add prefix if chapters exist
+yt-dlp -o "%(chapters&has chapters|no chapters)s" URL
+
+# Format title with padding
+yt-dlp -o "%(title&TITLE={:>20}|NO TITLE)s.%(ext)s" URL
+```
+
+### Default Values
+
+Set defaults for empty fields using `|` separator:
+
+```bash
+# Default to "Unknown" if uploader is missing
+yt-dlp -o "%(uploader|Unknown)s/%(title)s.%(ext)s" URL
+```
+
+### Special Conversions
+
+yt-dlp supports additional format types beyond standard Python:
+
+- `B` - Bytes conversion
+- `j` - JSON (use `#` for pretty-print, `+` for Unicode)
+- `h` - HTML escaping
+- `l` - Comma-separated list (`#` for newline-separated)
+- `q` - Shell-quoted string
+- `D` - Decimal suffixes like 10M (`#` to use 1024 as factor)
+- `S` - Sanitize as filename (`#` for restricted)
+- `U` - Unicode normalization (NFC, use `#` for NFD)
+
+<CodeGroup>
+```bash Filesize in Bytes
+yt-dlp --print "%(filesize)B" URL
+```
+
+```bash JSON Output
+yt-dlp --print "%(formats)#j" URL
+```
+
+```bash Sanitized Filename
+yt-dlp -o "%(title)#S.%(ext)s" URL
+```
+</CodeGroup>
+
+## Output Paths
+
+Use `-P` to specify paths for different file types:
+
+```bash
+# Set base download directory
+yt-dlp -P "/path/to/downloads" URL
+
+# Set different paths for different file types
+yt-dlp -P "home:/videos" -P "temp:/tmp" -P "subtitle:/subs" URL
+```
+
+Available path types:
+- `home` - Final download location (default)
+- `temp` - Temporary/intermediate files
+- `subtitle` - Subtitle files
+- `thumbnail` - Thumbnail files
+- `description` - Description files
+- `annotation` - Annotation files
+- `infojson` - Info JSON files
+
+## Type-Specific Templates
+
+Set different templates for different file types:
+
+```bash
+# Different template for thumbnails
+yt-dlp -o "%(title)s.%(ext)s" -o "thumbnail:%(title)s/%(title)s.%(ext)s" URL
+
+# Don't write thumbnails at all
+yt-dlp --write-thumbnail -o "thumbnail:" URL
+```
+
+Available template types:
+- `subtitle`
+- `thumbnail`
+- `description`
+- `infojson`
+- `pl_thumbnail`
+- `pl_description`
+- `pl_infojson`
+- `chapter`
+- `pl_video`
+
+## Practical Examples
+
+<CodeGroup>
+```bash Simple Title and ID
+yt-dlp -o "%(title)s-%(id)s.%(ext)s" URL
+# Output: yt-dlp test video-BaW_jenozKc.webm
+```
+
+```bash Organized Playlist
+yt-dlp -o "%(playlist)s/%(playlist_index)s - %(title)s.%(ext)s" URL
+# Output: My Playlist/01 - First Video.mp4
+#         My Playlist/02 - Second Video.mp4
+```
+
+```bash By Upload Year
+yt-dlp -o "%(upload_date>%Y)s/%(title)s.%(ext)s" URL
+# Output: 2024/Video Title.mp4
+#         2023/Old Video.mp4
+```
+
+```bash Uploader Organization
+yt-dlp -o "%(uploader)s/%(playlist)s/%(playlist_index)s - %(title)s.%(ext)s" URL
+# Output: Channel Name/Playlist/01 - Video.mp4
+```
+
+```bash Series Episodes
+yt-dlp -o "%(series)s/S%(season_number)02dE%(episode_number)02d - %(episode)s.%(ext)s" URL
+# Output: Show Name/S01E05 - Episode Title.mp4
+```
+
+```bash Restricted Filenames
+yt-dlp --print filename -o "%(title)s.%(ext)s" URL --restrict-filenames
+# Output: youtube-dl_test_video_.webm
+```
+
+```bash Multiple Paths
+yt-dlp -P "C:/MyVideos" -P "temp:tmp" -P "subtitle:subs" \
+  -o "%(uploader)s/%(title)s.%(ext)s" URL --write-subs
+# Video: C:/MyVideos/uploader/title.mp4
+# Subs: C:/MyVideos/subs/uploader/title.en.srt
+# Temp: C:/MyVideos/tmp/
+```
+
+```bash Complex Format
+yt-dlp -o "%(upload_date>%Y-%m-%d)s - [%(uploader)s] %(title).100s [%(id)s].%(ext)s" URL
+# Output: 2024-03-15 - [Channel] Video Title Truncated to 100 chars [BaW_jenozKc].mp4
+```
+</CodeGroup>
+
+## Advanced Use Cases
+
+### Conditional Prefix
+
+Add playlist index only when available:
+
+```bash
+yt-dlp -o "%(playlist_index&{} - |)s%(title)s.%(ext)s" URL
+# Playlist: 01 - Video.mp4
+# Single video: Video.mp4
+```
+
+### Hierarchical Organization
+
+```bash
+yt-dlp -o "%(uploader)s/%(playlist)s/%(playlist_index)s - %(title)s.%(ext)s" PLAYLIST_URL
+```
+
+### Course Downloads
+
+```bash
+yt-dlp -P "~/Courses" \
+  -o "%(playlist)s/%(chapter_number)s - %(chapter)s/%(title)s.%(ext)s" \
+  COURSE_URL
+```
+
+### Split Chapters
+
+```bash
+yt-dlp --split-chapters \
+  -o "chapter:%(title)s/%(section_number)02d - %(section_title)s.%(ext)s" \
+  URL
+```
+
+## Special Characters
+
+### Percent Literals
+
+Use `%%` for a literal percent sign:
+
+```bash
+yt-dlp -o "100%% complete - %(title)s.%(ext)s" URL
+# Output: 100% complete - Video.mp4
+```
+
+### Output to Stdout
+
+Use `-o -` to output to stdout:
+
+```bash
+# Stream video to stdout
+yt-dlp -o - URL | mpv -
+```
+
+## Filename Restrictions
+
+### Cross-Platform Compatibility
+
+```bash
+# ASCII-only filenames
+yt-dlp --restrict-filenames -o "%(title)s.%(ext)s" URL
+
+# Windows-compatible filenames
+yt-dlp --windows-filenames URL
+
+# Limit filename length
+yt-dlp --trim-filenames 150 URL
+```
+
+### Sanitization
+
+The `S` conversion automatically sanitizes filenames:
+
+```bash
+# Sanitize title for safe filesystem use
+yt-dlp -o "%(title)S.%(ext)s" URL
+
+# Restricted sanitization (more aggressive)
+yt-dlp -o "%(title)#S.%(ext)s" URL
+```
+
+## Getting Actual Filename
+
+Due to post-processing, the actual output filename may differ:
+
+```bash
+# Get final filename after all processing
+yt-dlp --print after_move:filepath URL
+
+# Preview filename before download
+yt-dlp --print filename -o "%(title)s.%(ext)s" URL
+```
+
+## Common Patterns
+
+### Clean Organization
+```bash
+yt-dlp -P "~/Videos" -o "%(uploader)s/%(title)s [%(id)s].%(ext)s"
+```
+
+### Archive Format
+```bash
+yt-dlp -o "%(upload_date>%Y-%m-%d)s_%(uploader)s_%(id)s.%(ext)s"
+```
+
+### Music Downloads
+```bash
+yt-dlp -x --audio-format mp3 \
+  -o "%(artist|uploader)s/%(album|playlist|NA)s/%(track_number)02d - %(title)s.%(ext)s"
+```
+
+### Safe Default
+```bash
+yt-dlp -o "%(title).200s [%(id)s].%(ext)s" --restrict-filenames
+```

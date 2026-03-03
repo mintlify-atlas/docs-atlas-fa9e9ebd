@@ -1,0 +1,221 @@
+---
+title: Download Options
+description: Control download behavior, concurrent fragments, rate limiting, retries, and external downloaders
+---
+
+## Concurrent Downloads
+
+<ParamField path="-N, --concurrent-fragments" type="number" default="1">
+  Number of fragments of a dash/hlsnative video that should be downloaded concurrently
+  
+  **Example:**
+  ```bash
+  yt-dlp -N 4 URL
+  ```
+</ParamField>
+
+## Rate Limiting
+
+<ParamField path="-r, --limit-rate" type="string">
+  Maximum download rate in bytes per second
+  
+  **Example:**
+  ```bash
+  yt-dlp -r 50K URL
+  yt-dlp -r 4.2M URL
+  ```
+</ParamField>
+
+<ParamField path="--throttled-rate" type="string">
+  Minimum download rate in bytes per second below which throttling is assumed and the video data is re-extracted
+  
+  **Example:**
+  ```bash
+  yt-dlp --throttled-rate 100K URL
+  ```
+</ParamField>
+
+## Retry Configuration
+
+<ParamField path="-R, --retries" type="string" default="10">
+  Number of retries, or "infinite"
+  
+  **Example:**
+  ```bash
+  yt-dlp -R 20 URL
+  yt-dlp -R infinite URL
+  ```
+</ParamField>
+
+<ParamField path="--file-access-retries" type="string" default="3">
+  Number of times to retry on file access error, or "infinite"
+</ParamField>
+
+<ParamField path="--fragment-retries" type="string" default="10">
+  Number of retries for a fragment, or "infinite" (DASH, hlsnative and ISM)
+</ParamField>
+
+<ParamField path="--retry-sleep" type="string">
+  Time to sleep between retries in seconds (optionally) prefixed by the type of retry
+  
+  Format: `[TYPE:]EXPR`
+  
+  Types: `http` (default), `fragment`, `file_access`, `extractor`
+  
+  EXPR can be:
+  - A number
+  - `linear=START[:END[:STEP=1]]`
+  - `exp=START[:END[:BASE=2]]`
+  
+  This option can be used multiple times to set the sleep for different retry types.
+  
+  **Example:**
+  ```bash
+  yt-dlp --retry-sleep linear=1::2 --retry-sleep fragment:exp=1:20 URL
+  ```
+</ParamField>
+
+## Fragment Handling
+
+<ParamField path="--skip-unavailable-fragments" type="flag" default="true">
+  Skip unavailable fragments for DASH, hlsnative and ISM downloads
+  
+  Alias: `--no-abort-on-unavailable-fragments`
+</ParamField>
+
+<ParamField path="--abort-on-unavailable-fragments" type="flag">
+  Abort download if a fragment is unavailable
+  
+  Alias: `--no-skip-unavailable-fragments`
+</ParamField>
+
+<ParamField path="--keep-fragments" type="flag">
+  Keep downloaded fragments on disk after downloading is finished
+</ParamField>
+
+<ParamField path="--no-keep-fragments" type="flag" default="true">
+  Delete downloaded fragments after downloading is finished
+</ParamField>
+
+## Buffer Configuration
+
+<ParamField path="--buffer-size" type="string" default="1024">
+  Size of download buffer
+  
+  **Example:**
+  ```bash
+  yt-dlp --buffer-size 1024 URL
+  yt-dlp --buffer-size 16K URL
+  ```
+</ParamField>
+
+<ParamField path="--resize-buffer" type="flag" default="true">
+  The buffer size is automatically resized from an initial value of `--buffer-size`
+</ParamField>
+
+<ParamField path="--no-resize-buffer" type="flag">
+  Do not automatically adjust the buffer size
+</ParamField>
+
+<ParamField path="--http-chunk-size" type="string">
+  Size of a chunk for chunk-based HTTP downloading
+  
+  May be useful for bypassing bandwidth throttling imposed by a webserver (experimental)
+  
+  Default is disabled.
+  
+  **Example:**
+  ```bash
+  yt-dlp --http-chunk-size 10485760 URL
+  yt-dlp --http-chunk-size 10M URL
+  ```
+</ParamField>
+
+## Playlist Options
+
+<ParamField path="--playlist-random" type="flag">
+  Download playlist videos in random order
+</ParamField>
+
+<ParamField path="--lazy-playlist" type="flag">
+  Process entries in the playlist as they are received
+  
+  This disables `n_entries`, `--playlist-random` and `--playlist-reverse`
+</ParamField>
+
+<ParamField path="--no-lazy-playlist" type="flag" default="true">
+  Process videos in the playlist only after the entire playlist is parsed
+</ParamField>
+
+## HLS Options
+
+<ParamField path="--hls-use-mpegts" type="flag">
+  Use the mpegts container for HLS videos
+  
+  Allows some players to play the video while downloading, and reduces the chance of file corruption if download is interrupted.
+  
+  This is enabled by default for live streams.
+</ParamField>
+
+<ParamField path="--no-hls-use-mpegts" type="flag">
+  Do not use the mpegts container for HLS videos
+  
+  This is default when not downloading live streams.
+</ParamField>
+
+## Download Sections
+
+<ParamField path="--download-sections" type="string">
+  Download only chapters that match the regular expression
+  
+  - A "*" prefix denotes time-range instead of chapter
+  - Negative timestamps are calculated from the end
+  - "*from-url" can be used to download between the "start_time" and "end_time" extracted from the URL
+  
+  Needs ffmpeg. This option can be used multiple times to download multiple sections.
+  
+  **Example:**
+  ```bash
+  yt-dlp --download-sections "*10:15-inf" --download-sections "intro" URL
+  ```
+</ParamField>
+
+## External Downloader
+
+<ParamField path="--downloader" type="string">
+  Name or path of the external downloader to use (optionally) prefixed by the protocols to use it for
+  
+  Format: `[PROTO:]NAME`
+  
+  Protocols: `http`, `ftp`, `m3u8`, `dash`, `rstp`, `rtmp`, `mms`
+  
+  Supported downloaders: `native`, `aria2c`, `axel`, `curl`, `ffmpeg`, `httpie`, `wget`
+  
+  You can use this option multiple times to set different downloaders for different protocols.
+  
+  Alias: `--external-downloader`
+  
+  **Example:**
+  ```bash
+  yt-dlp --downloader aria2c URL
+  yt-dlp --downloader "dash,m3u8:native" URL
+  # Uses aria2c for http/ftp, native for dash/m3u8
+  ```
+</ParamField>
+
+<ParamField path="--downloader-args" type="string">
+  Give these arguments to the external downloader
+  
+  Format: `NAME:ARGS`
+  
+  Specify the downloader name and the arguments separated by a colon ":". For ffmpeg, arguments can be passed to different positions using the same syntax as `--postprocessor-args`.
+  
+  You can use this option multiple times to give different arguments to different downloaders.
+  
+  Alias: `--external-downloader-args`
+  
+  **Example:**
+  ```bash
+  yt-dlp --downloader aria2c --downloader-args "aria2c:-x 16 -k 1M" URL
+  ```
+</ParamField>

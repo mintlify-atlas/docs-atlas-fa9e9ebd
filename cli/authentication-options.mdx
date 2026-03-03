@@ -1,0 +1,129 @@
+---
+title: Authentication Options
+description: Configure login credentials, passwords, and certificate-based authentication
+---
+
+## Basic Authentication
+
+<ParamField path="-u, --username" type="string">
+  Login with this account ID
+  
+  **Example:**
+  ```bash
+  yt-dlp -u myusername URL
+  ```
+</ParamField>
+
+<ParamField path="-p, --password" type="string">
+  Account password
+  
+  If this option is left out, yt-dlp will ask interactively
+  
+  **Example:**
+  ```bash
+  yt-dlp -u myusername -p mypassword URL
+  ```
+</ParamField>
+
+<ParamField path="-2, --twofactor" type="string">
+  Two-factor authentication code
+  
+  **Example:**
+  ```bash
+  yt-dlp -u myusername -p mypassword -2 123456 URL
+  ```
+</ParamField>
+
+## Netrc Authentication
+
+<ParamField path="-n, --netrc" type="flag">
+  Use .netrc authentication data
+  
+  See "Authentication with netrc" for more details
+</ParamField>
+
+<ParamField path="--netrc-location" type="string">
+  Location of .netrc authentication data; either the path or its containing directory
+  
+  Defaults to `~/.netrc`
+  
+  **Example:**
+  ```bash
+  yt-dlp --netrc-location ~/.config/netrc URL
+  ```
+</ParamField>
+
+<ParamField path="--netrc-cmd" type="string">
+  Command to execute to get the credentials for an extractor
+  
+  **Example:**
+  ```bash
+  yt-dlp --netrc-cmd 'gpg --decrypt ~/.authinfo.gpg' URL
+  ```
+</ParamField>
+
+## Video-Specific Password
+
+<ParamField path="--video-password" type="string">
+  Video-specific password
+  
+  **Example:**
+  ```bash
+  yt-dlp --video-password secret123 URL
+  ```
+</ParamField>
+
+## Adobe Pass Authentication
+
+<ParamField path="--ap-mso" type="string">
+  Adobe Pass multiple-system operator (TV provider) identifier
+  
+  Use `--ap-list-mso` for a list of available MSOs
+  
+  **Example:**
+  ```bash
+  yt-dlp --ap-mso Verizon URL
+  ```
+</ParamField>
+
+<ParamField path="--ap-username" type="string">
+  Multiple-system operator account login
+</ParamField>
+
+<ParamField path="--ap-password" type="string">
+  Multiple-system operator account password
+  
+  If this option is left out, yt-dlp will ask interactively
+</ParamField>
+
+<ParamField path="--ap-list-mso" type="flag">
+  List all supported multiple-system operators
+</ParamField>
+
+## Client Certificate Authentication
+
+<ParamField path="--client-certificate" type="string">
+  Path to client certificate file in PEM format
+  
+  May include the private key
+  
+  **Example:**
+  ```bash
+  yt-dlp --client-certificate /path/to/cert.pem URL
+  ```
+</ParamField>
+
+<ParamField path="--client-certificate-key" type="string">
+  Path to private key file for client certificate
+  
+  **Example:**
+  ```bash
+  yt-dlp --client-certificate cert.pem --client-certificate-key key.pem URL
+  ```
+</ParamField>
+
+<ParamField path="--client-certificate-password" type="string">
+  Password for client certificate private key, if encrypted
+  
+  If not provided, and the key is encrypted, yt-dlp will ask interactively
+</ParamField>

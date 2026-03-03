@@ -1,0 +1,562 @@
+---
+title: Frequently Asked Questions
+description: Common questions about yt-dlp functionality and usage
+icon: question
+---
+
+Answers to the most common questions about using yt-dlp.
+
+## General Questions
+
+<AccordionGroup>
+  <Accordion title="What is yt-dlp?">
+    yt-dlp is a feature-rich command-line audio/video downloader with support for thousands of sites. It's a fork of youtube-dl with additional features and fixes.
+    
+    Key improvements over youtube-dl:
+    - Faster and more frequently updated
+    - Better format selection
+    - More extractors and features
+    - SponsorBlock integration
+    - Better playlist handling
+  </Accordion>
+
+  <Accordion title="Is yt-dlp legal to use?">
+    yt-dlp is a legal tool, but how you use it matters:
+    
+    **Legal uses:**
+    - Downloading your own videos
+    - Downloading content you have rights to
+    - Downloading public domain or Creative Commons content
+    - Personal backups of content you have access to
+    
+    **Potentially illegal:**
+    - Downloading copyrighted content without permission
+    - Bypassing DRM protection
+    - Violating a website's Terms of Service
+    
+    <Warning>
+    You are responsible for complying with copyright laws and terms of service in your jurisdiction.
+    </Warning>
+  </Accordion>
+
+  <Accordion title="What's the difference between yt-dlp and youtube-dl?">
+    yt-dlp is a fork of youtube-dl with:
+    - More frequent updates and active development
+    - Additional features (SponsorBlock, better format selection, etc.)
+    - More supported sites and extractors
+    - Better performance
+    - Bug fixes and improvements
+    
+    yt-dlp maintains compatibility with youtube-dl while adding new capabilities.
+  </Accordion>
+
+  <Accordion title="Which Python version do I need?">
+    - **Python 3.10+** (CPython)
+    - **Python 3.11+** (PyPy)
+    
+    If you use standalone binaries, Python is already included.
+  </Accordion>
+
+  <Accordion title="Do I need ffmpeg?">
+    While technically optional, **ffmpeg is strongly recommended** for:
+    - Merging video and audio streams
+    - Converting formats
+    - Embedding thumbnails and metadata
+    - Downloading HLS/DASH streams
+    - Most post-processing tasks
+    
+    Download from: [yt-dlp/FFmpeg-Builds](https://github.com/yt-dlp/FFmpeg-Builds/releases)
+  </Accordion>
+</AccordionGroup>
+
+## Installation & Updates
+
+<AccordionGroup>
+  <Accordion title="How do I install yt-dlp?">
+    **Recommended methods:**
+    
+    ```bash
+    # Standalone binary (Linux/macOS)
+    sudo wget https://github.com/yt-dlp/yt-dlp/releases/latest/download/yt-dlp -O /usr/local/bin/yt-dlp
+    sudo chmod a+rx /usr/local/bin/yt-dlp
+    
+    # Windows (download .exe)
+    # https://github.com/yt-dlp/yt-dlp/releases/latest/download/yt-dlp.exe
+    
+    # Via pip
+    pip install yt-dlp
+    
+    # Via pip with all extras
+    pip install "yt-dlp[default,curl-cffi]"
+    ```
+    
+    See the [Installation](/installation) guide for more options.
+  </Accordion>
+
+  <Accordion title="How do I update yt-dlp?">
+    **For standalone binaries:**
+    ```bash
+    yt-dlp --update
+    
+    # Update to nightly (recommended)
+    yt-dlp --update-to nightly
+    ```
+    
+    **For pip installations:**
+    ```bash
+    pip install -U yt-dlp
+    
+    # Install nightly with pip
+    pip install -U --pre "yt-dlp[default]"
+    ```
+  </Accordion>
+
+  <Accordion title="Should I use stable or nightly builds?">
+    **Use nightly builds** for regular use. They are:
+    - Updated daily with latest fixes
+    - More reliable for frequently-changing sites
+    - The recommended version for bug reports
+    
+    **Stable builds** are less frequent and may have older extractors.
+    
+    ```bash
+    yt-dlp --update-to nightly
+    ```
+  </Accordion>
+
+  <Accordion title="How do I install yt-dlp-ejs for YouTube?">
+    yt-dlp-ejs is required for full YouTube support.
+    
+    **Included in:** Most standalone binaries
+    
+    **For pip installations:**
+    1. Install a JavaScript runtime (deno recommended):
+       ```bash
+       # Install deno
+       curl -fsSL https://deno.land/install.sh | sh
+       ```
+    
+    2. yt-dlp will automatically fetch yt-dlp-ejs when needed
+    
+    See the [EJS wiki](https://github.com/yt-dlp/yt-dlp/wiki/EJS) for detailed setup.
+  </Accordion>
+</AccordionGroup>
+
+## Downloading
+
+<AccordionGroup>
+  <Accordion title="How do I download the best quality video?">
+    ```bash
+    # Best overall quality (may be webm)
+    yt-dlp -f "bestvideo+bestaudio" URL
+    
+    # Best MP4 video
+    yt-dlp -f "bestvideo[ext=mp4]+bestaudio[ext=m4a]/best[ext=mp4]/best" URL
+    
+    # Simpler: use preset
+    yt-dlp --preset-alias mp4 URL
+    ```
+  </Accordion>
+
+  <Accordion title="How do I download audio only?">
+    ```bash
+    # Extract audio
+    yt-dlp -x URL
+    
+    # Extract as MP3
+    yt-dlp -x --audio-format mp3 URL
+    
+    # Or use preset
+    yt-dlp --preset-alias mp3 URL
+    
+    # Best quality audio (no conversion)
+    yt-dlp -f "bestaudio" URL
+    ```
+  </Accordion>
+
+  <Accordion title="How do I download an entire playlist?">
+    ```bash
+    # Download entire playlist
+    yt-dlp PLAYLIST_URL
+    
+    # Download specific items
+    yt-dlp --playlist-items 1-10,15,20 PLAYLIST_URL
+    
+    # Download in reverse order
+    yt-dlp --playlist-reverse PLAYLIST_URL
+    
+    # Skip first N videos
+    yt-dlp --playlist-start 5 PLAYLIST_URL
+    ```
+  </Accordion>
+
+  <Accordion title="How do I download a video and playlist simultaneously?">
+    By default, if a URL contains both a video and playlist, only the video is downloaded.
+    
+    ```bash
+    # Download entire playlist
+    yt-dlp --yes-playlist URL
+    
+    # Download only the video
+    yt-dlp --no-playlist URL
+    ```
+  </Accordion>
+
+  <Accordion title="How do I limit download to specific quality?">
+    ```bash
+    # Max 1080p
+    yt-dlp -f "bestvideo[height<=1080]+bestaudio/best" URL
+    
+    # Exactly 720p
+    yt-dlp -f "bestvideo[height=720]+bestaudio" URL
+    
+    # Max file size
+    yt-dlp --max-filesize 100M URL
+    ```
+  </Accordion>
+
+  <Accordion title="How do I download subtitles?">
+    ```bash
+    # Download all available subtitles
+    yt-dlp --write-subs --sub-langs all URL
+    
+    # Download auto-generated subs
+    yt-dlp --write-auto-subs --sub-langs en URL
+    
+    # Embed subtitles in video
+    yt-dlp --embed-subs URL
+    
+    # Specific languages
+    yt-dlp --write-subs --sub-langs en,es,fr URL
+    ```
+  </Accordion>
+
+  <Accordion title="How do I download livestreams?">
+    ```bash
+    # Download from current position
+    yt-dlp URL
+    
+    # Download from start (experimental)
+    yt-dlp --live-from-start URL
+    
+    # Wait for scheduled stream
+    yt-dlp --wait-for-video 60 URL
+    ```
+  </Accordion>
+
+  <Accordion title="How do I resume interrupted downloads?">
+    ```bash
+    # Resume (enabled by default)
+    yt-dlp --continue URL
+    
+    # Restart from beginning
+    yt-dlp --no-continue URL
+    ```
+  </Accordion>
+</AccordionGroup>
+
+## Authentication
+
+<AccordionGroup>
+  <Accordion title="How do I download private/members-only videos?">
+    Use cookies from your logged-in browser:
+    
+    ```bash
+    yt-dlp --cookies-from-browser firefox URL
+    ```
+    
+    Supported browsers: `firefox`, `chrome`, `chromium`, `edge`, `opera`, `safari`, `brave`
+  </Accordion>
+
+  <Accordion title="How do I use username and password?">
+    ```bash
+    yt-dlp --username YOUR_USERNAME --password YOUR_PASSWORD URL
+    
+    # Or use netrc file
+    yt-dlp --netrc URL
+    ```
+    
+    <Note>
+    Many sites block programmatic login. Using cookies is more reliable.
+    </Note>
+  </Accordion>
+
+  <Accordion title="What is a .netrc file and how do I use it?">
+    A `.netrc` file stores login credentials.
+    
+    **Location:**
+    - Linux/macOS: `~/.netrc`
+    - Windows: `%HOME%\_netrc`
+    
+    **Format:**
+    ```
+    machine youtube
+    login your_email@example.com
+    password your_password
+    
+    machine twitch
+    login your_username
+    password your_password
+    ```
+    
+    **Usage:**
+    ```bash
+    yt-dlp --netrc URL
+    ```
+  </Accordion>
+</AccordionGroup>
+
+## Format Selection
+
+<AccordionGroup>
+  <Accordion title="How do I list available formats?">
+    ```bash
+    yt-dlp -F URL
+    ```
+    
+    This shows all formats with IDs, resolutions, codecs, and file sizes.
+  </Accordion>
+
+  <Accordion title="How do I download specific formats?">
+    ```bash
+    # By format ID
+    yt-dlp -f 137+140 URL
+    
+    # By criteria
+    yt-dlp -f "bestvideo[ext=mp4]+bestaudio[ext=m4a]" URL
+    ```
+  </Accordion>
+
+  <Accordion title="Why are video and audio separate?">
+    Many sites (especially YouTube) serve high-quality video and audio as separate streams.
+    
+    yt-dlp automatically:
+    1. Downloads both streams
+    2. Merges them using ffmpeg
+    
+    <Info>
+    This is why ffmpeg is required for best quality downloads.
+    </Info>
+  </Accordion>
+
+  <Accordion title="How do I prefer MP4 over WEBM?">
+    ```bash
+    yt-dlp -f "bestvideo[ext=mp4]+bestaudio[ext=m4a]/best[ext=mp4]/best" URL
+    
+    # Or merge to MP4
+    yt-dlp --merge-output-format mp4 URL
+    ```
+  </Accordion>
+</AccordionGroup>
+
+## Output & File Naming
+
+<AccordionGroup>
+  <Accordion title="How do I customize output filename?">
+    ```bash
+    # Basic template
+    yt-dlp -o "%(title)s.%(ext)s" URL
+    
+    # With uploader and date
+    yt-dlp -o "%(uploader)s - %(upload_date)s - %(title)s.%(ext)s" URL
+    
+    # Organize in folders
+    yt-dlp -o "%(uploader)s/%(playlist)s/%(playlist_index)s - %(title)s.%(ext)s" URL
+    ```
+    
+    See [Output Templates](/usage/output-templates) for all available fields.
+  </Accordion>
+
+  <Accordion title="How do I save to a specific folder?">
+    ```bash
+    # Using -P option
+    yt-dlp -P /path/to/folder URL
+    
+    # Using -o with full path
+    yt-dlp -o "/path/to/folder/%(title)s.%(ext)s" URL
+    ```
+  </Accordion>
+
+  <Accordion title="How do I avoid overwriting files?">
+    ```bash
+    # Don't overwrite (default)
+    yt-dlp --no-overwrites URL
+    
+    # Force overwrite
+    yt-dlp --force-overwrites URL
+    ```
+  </Accordion>
+
+  <Accordion title="How do I restrict filename characters?">
+    ```bash
+    # ASCII only
+    yt-dlp --restrict-filenames URL
+    
+    # Windows-compatible
+    yt-dlp --windows-filenames URL
+    ```
+  </Accordion>
+</AccordionGroup>
+
+## Post-Processing
+
+<AccordionGroup>
+  <Accordion title="How do I convert video to MP4?">
+    ```bash
+    # Merge to MP4 container
+    yt-dlp --merge-output-format mp4 URL
+    
+    # Re-encode to MP4
+    yt-dlp --recode-video mp4 URL
+    ```
+  </Accordion>
+
+  <Accordion title="How do I embed thumbnail in audio file?">
+    ```bash
+    yt-dlp -x --audio-format mp3 --embed-thumbnail URL
+    ```
+    
+    Requires `mutagen` (or `AtomicParsley` for M4A).
+  </Accordion>
+
+  <Accordion title="How do I embed metadata?">
+    ```bash
+    # Embed metadata and thumbnail
+    yt-dlp --embed-metadata --embed-thumbnail URL
+    
+    # Add chapter markers
+    yt-dlp --embed-chapters URL
+    ```
+  </Accordion>
+
+  <Accordion title="How do I remove ads with SponsorBlock?">
+    ```bash
+    # Remove sponsor segments
+    yt-dlp --sponsorblock-remove sponsor URL
+    
+    # Remove all SponsorBlock categories
+    yt-dlp --sponsorblock-remove all URL
+    
+    # Just mark chapters (don't remove)
+    yt-dlp --sponsorblock-mark all URL
+    ```
+  </Accordion>
+</AccordionGroup>
+
+## Advanced Usage
+
+<AccordionGroup>
+  <Accordion title="How do I use a configuration file?">
+    Create `~/.config/yt-dlp/config` (Linux/macOS) or `%APPDATA%/yt-dlp/config.txt` (Windows):
+    
+    ```
+    # Format selection
+    -f bestvideo+bestaudio
+    
+    # Output template
+    -o ~/Videos/%(title)s.%(ext)s
+    
+    # Embed metadata
+    --embed-metadata
+    --embed-thumbnail
+    
+    # SponsorBlock
+    --sponsorblock-mark all
+    ```
+    
+    Options in config file are used automatically.
+  </Accordion>
+
+  <Accordion title="How do I download from a list of URLs?">
+    Create a text file with one URL per line:
+    
+    ```bash
+    yt-dlp --batch-file urls.txt
+    
+    # Or from stdin
+    cat urls.txt | yt-dlp --batch-file -
+    ```
+  </Accordion>
+
+  <Accordion title="How do I use yt-dlp with a download manager?">
+    ```bash
+    # Get direct URL
+    yt-dlp -g URL
+    
+    # Use with aria2c
+    yt-dlp --downloader aria2c --downloader-args "-x 16 -s 16" URL
+    ```
+  </Accordion>
+
+  <Accordion title="How do I filter videos in a playlist?">
+    ```bash
+    # Only videos shorter than 10 minutes
+    yt-dlp --match-filters "duration < 600" PLAYLIST_URL
+    
+    # Only videos uploaded this year
+    yt-dlp --dateafter now-1year PLAYLIST_URL
+    
+    # Exclude live streams
+    yt-dlp --match-filters "!is_live" PLAYLIST_URL
+    ```
+  </Accordion>
+
+  <Accordion title="Can I use yt-dlp in my Python script?">
+    Yes! See the [Embedding yt-dlp](/advanced/embedding) guide.
+    
+    ```python
+    from yt_dlp import YoutubeDL
+    
+    ydl_opts = {'format': 'best'}
+    with YoutubeDL(ydl_opts) as ydl:
+        ydl.download(['https://www.youtube.com/watch?v=VIDEO_ID'])
+    ```
+  </Accordion>
+</AccordionGroup>
+
+## Troubleshooting
+
+<AccordionGroup>
+  <Accordion title="Why is my download failing?">
+    1. **Update to nightly:**
+       ```bash
+       yt-dlp --update-to nightly
+       ```
+    
+    2. **Check verbose output:**
+       ```bash
+       yt-dlp --verbose URL
+       ```
+    
+    3. **Try with cookies:**
+       ```bash
+       yt-dlp --cookies-from-browser firefox URL
+       ```
+    
+    See the [Troubleshooting](/reference/troubleshooting) guide for more solutions.
+  </Accordion>
+
+  <Accordion title="Why is yt-dlp slow?">
+    - Use external downloader: `--downloader aria2c`
+    - Increase concurrent fragments: `-N 10`
+    - Check your internet connection
+    - Some sites have rate limiting
+  </Accordion>
+
+  <Accordion title="Where can I get help?">
+    - [Troubleshooting Guide](/reference/troubleshooting)
+    - [GitHub Discussions](https://github.com/yt-dlp/yt-dlp/discussions)
+    - [Discord Server](https://discord.gg/H5MNcFW63r)
+    - [GitHub Issues](https://github.com/yt-dlp/yt-dlp/issues) (for bugs)
+  </Accordion>
+</AccordionGroup>
+
+## More Information
+
+For more detailed information, see:
+
+- [Official Documentation](https://github.com/yt-dlp/yt-dlp)
+- [Wiki](https://github.com/yt-dlp/yt-dlp/wiki)
+- [Format Selection](/usage/format-selection)
+- [Output Templates](/usage/output-templates)
+- [All Options](/options/overview)

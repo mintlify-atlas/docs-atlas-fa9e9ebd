@@ -1,122 +1,114 @@
 {
   "$schema": "https://mintlify.com/docs.json",
-  "theme": "mint",
-  "name": "Mint Starter Kit",
+  "name": "yt-dlp",
+  "theme": "aspen",
   "colors": {
-    "primary": "#16A34A",
-    "light": "#07C983",
-    "dark": "#15803D"
+    "primary": "#FF0000",
+    "light": "#FF6B6B",
+    "dark": "#CC0000"
   },
-  "favicon": "/favicon.svg",
+  "navbar": {
+    "primary": {
+      "type": "github",
+      "href": "https://github.com/yt-dlp/yt-dlp"
+    }
+  },
+  "footer": {
+    "socials": {
+      "github": "https://github.com/yt-dlp/yt-dlp",
+      "discord": "https://discord.gg/H5MNcFW63r"
+    }
+  },
   "navigation": {
     "tabs": [
       {
-        "tab": "Guides",
+        "tab": "Documentation",
         "groups": [
           {
-            "group": "Getting started",
+            "group": "Getting Started",
             "pages": [
               "index",
-              "quickstart",
-              "development"
+              "installation",
+              "quickstart"
             ]
           },
           {
-            "group": "Customization",
+            "group": "Core Concepts",
             "pages": [
-              "essentials/settings",
-              "essentials/navigation"
+              "core-concepts/format-selection",
+              "core-concepts/output-templates",
+              "core-concepts/configuration",
+              "core-concepts/authentication"
             ]
           },
           {
-            "group": "Writing content",
+            "group": "Guides",
             "pages": [
-              "essentials/markdown",
-              "essentials/code",
-              "essentials/images",
-              "essentials/reusable-snippets"
+              "guides/downloading-videos",
+              "guides/audio-extraction",
+              "guides/format-conversion",
+              "guides/metadata-modification",
+              "guides/post-processing",
+              "guides/sponsorblock",
+              "guides/playlists"
             ]
           },
           {
-            "group": "AI tools",
+            "group": "Advanced",
             "pages": [
-              "ai-tools/cursor",
-              "ai-tools/claude-code",
-              "ai-tools/windsurf"
+              "advanced/plugins",
+              "advanced/embedding",
+              "advanced/custom-extractors",
+              "advanced/workarounds"
+            ]
+          },
+          {
+            "group": "Reference",
+            "pages": [
+              "reference/supported-sites",
+              "reference/dependencies",
+              "reference/troubleshooting",
+              "reference/faq"
             ]
           }
         ]
       },
       {
-        "tab": "API reference",
+        "tab": "CLI Reference",
         "groups": [
           {
-            "group": "API documentation",
+            "group": "Command Options",
             "pages": [
-              "api-reference/introduction"
+              "cli/general-options",
+              "cli/network-options",
+              "cli/video-selection",
+              "cli/download-options",
+              "cli/filesystem-options",
+              "cli/format-options",
+              "cli/subtitle-options",
+              "cli/authentication-options",
+              "cli/post-processing-options",
+              "cli/sponsorblock-options",
+              "cli/extractor-options"
             ]
-          },
+          }
+        ]
+      },
+      {
+        "tab": "Python API",
+        "groups": [
           {
-            "group": "Endpoint examples",
+            "group": "API Reference",
             "pages": [
-              "api-reference/endpoint/get",
-              "api-reference/endpoint/create",
-              "api-reference/endpoint/delete",
-              "api-reference/endpoint/webhook"
+              "api/overview",
+              "api/youtubedl-class",
+              "api/extractors",
+              "api/post-processors",
+              "api/examples"
             ]
           }
         ]
       }
-    ],
-    "global": {
-      "anchors": [
-        {
-          "anchor": "Documentation",
-          "href": "https://mintlify.com/docs",
-          "icon": "book-open-cover"
-        },
-        {
-          "anchor": "Blog",
-          "href": "https://mintlify.com/blog",
-          "icon": "newspaper"
-        }
-      ]
-    }
-  },
-  "logo": {
-    "light": "/logo/light.svg",
-    "dark": "/logo/dark.svg"
-  },
-  "navbar": {
-    "links": [
-      {
-        "label": "Support",
-        "href": "mailto:hi@mintlify.com"
-      }
-    ],
-    "primary": {
-      "type": "button",
-      "label": "Dashboard",
-      "href": "https://dashboard.mintlify.com"
-    }
-  },
-  "contextual": {
-    "options": [
-     "copy",
-     "view",
-     "chatgpt",
-     "claude",
-     "perplexity",
-     "mcp",
-     "cursor",
-     "vscode"
-   ]
-  },
-  "footer": {
-    "socials": {
-      "x": "https://x.com/mintlify",
-      "github": "https://github.com/mintlify",
-      "linkedin": "https://linkedin.com/company/mintlify"
-    }
+    ]
   }
 }

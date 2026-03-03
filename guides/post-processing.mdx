@@ -1,0 +1,515 @@
+---
+title: 'Post-Processing'
+description: 'Advanced post-processing options for downloaded media'
+icon: 'gears'
+---
+
+## Overview
+
+Post-processing in yt-dlp allows you to automatically manipulate downloaded files through various operations like format conversion, metadata embedding, subtitle processing, and custom commands.
+
+## Post-Processing Pipeline
+
+Post-processors run in this order:
+
+1. **Pre-process**: After video extraction, before format selection
+2. **After filter**: After video passes filters
+3. **Video**: After format selection, before download
+4. **Before download**: Before each video download
+5. **Post-process**: After each video download (default)
+6. **After move**: After moving to final location
+7. **After video**: After processing all formats of a video
+8. **Playlist**: At end of playlist
+
+## Audio Extraction
+
+Convert videos to audio-only files:
+
+<CodeGroup>
+```bash Basic Extraction
+# Extract audio in best format
+yt-dlp -x URL
+
+# Extract as MP3
+yt-dlp -x --audio-format mp3 URL
+```
+
+```bash With Quality
+# VBR quality (0=best, 10=worst)
+yt-dlp -x --audio-format mp3 --audio-quality 0 URL
+
+# Specific bitrate
+yt-dlp -x --audio-format mp3 --audio-quality 320K URL
+```
+
+```bash Keep Video
+# Keep original video file after extraction
+yt-dlp -x --keep-video URL
+```
+</CodeGroup>
+
+<Tip>
+See the [Audio Extraction guide](/guides/audio-extraction) for detailed examples.
+</Tip>
+
+## Format Conversion
+
+### Remuxing
+
+Change container without re-encoding:
+
+```bash
+# Remux to MP4 if necessary
+yt-dlp --remux-video mp4 URL
+
+# Conditional remuxing
+yt-dlp --remux-video "aac>m4a/mov>mp4/mkv" URL
+```
+
+### Re-encoding
+
+<Warning>
+Re-encoding reduces quality and takes longer. Use only when necessary.
+</Warning>
+
+```bash
+# Re-encode to MP4
+yt-dlp --recode-video mp4 URL
+
+# Conditional re-encoding
+yt-dlp --recode-video "avi>mp4/flv>mp4/mp4" URL
+```
+
+## Metadata Operations
+
+### Embedding metadata
+
+<Steps>
+  <Step title="Basic metadata">
+    ```bash
+    yt-dlp --embed-metadata URL
+    ```
+    
+    Embeds video metadata and chapters (in MKV, also embeds infojson).
+  </Step>
+
+  <Step title="Additional metadata">
+    ```bash
+    # Embed thumbnail as cover art
+    yt-dlp --embed-thumbnail URL
+    
+    # Embed subtitles
+    yt-dlp --embed-subs URL
+    
+    # Embed chapters
+    yt-dlp --embed-chapters URL
+    ```
+  </Step>
+
+  <Step title="Complete embedding">
+    ```bash
+    # Embed everything
+    yt-dlp --embed-metadata \
+      --embed-thumbnail \
+      --embed-subs \
+      --embed-chapters \
+      URL
+    ```
+  </Step>
+</Steps>
+
+### Modifying metadata
+
+```bash
+# Parse metadata from fields
+yt-dlp --parse-metadata "title:%(artist)s - %(title)s" \
+  --embed-metadata URL
+
+# Replace text in metadata
+yt-dlp --replace-in-metadata "title,uploader" "[ _]" "-" URL
+```
+
+<Tip>
+See the [Metadata Modification guide](/guides/metadata-modification) for detailed examples.
+</Tip>
+
+## Subtitle Processing
+
+### Download and convert
+
+<CodeGroup>
+```bash Download Subtitles
+# Download available subtitles
+yt-dlp --write-subs URL
+
+# Download auto-generated subtitles
+yt-dlp --write-auto-subs URL
+
+# All subtitles
+yt-dlp --write-subs --write-auto-subs URL
+```
+
+```bash Convert Format
+# Convert to SRT
+yt-dlp --write-subs --convert-subs srt URL
+
+# Convert to VTT
+yt-dlp --write-subs --convert-subs vtt URL
+
+# Keep original
+yt-dlp --write-subs --convert-subs none URL
+```
+
+```bash Embed in Video
+# Download and embed
+yt-dlp --write-subs --embed-subs URL
+
+# Embed and keep separate file
+yt-dlp --write-subs --embed-subs URL
+
+# Embed and remove separate file
+yt-dlp --embed-subs URL
+```
+</CodeGroup>
+
+## Thumbnail Processing
+
+```bash
+# Download thumbnail
+yt-dlp --write-thumbnail URL
+
+# Convert to JPG
+yt-dlp --write-thumbnail --convert-thumbnails jpg URL
+
+# Embed in media file
+yt-dlp --embed-thumbnail URL
+
+# All thumbnail formats
+yt-dlp --write-all-thumbnails URL
+```
+
+## Chapter Operations
+
+### Splitting by chapters
+
+```bash
+# Split video into chapter files
+yt-dlp --split-chapters URL
+
+# With custom output template for chapters
+yt-dlp --split-chapters \
+  -o "chapter:%(title)s - %(section_number)s %(section_title)s.%(ext)s" \
+  URL
+```
+
+### Removing chapters
+
+```bash
+# Remove chapters matching regex
+yt-dlp --remove-chapters "Intro" URL
+
+# Remove multiple patterns
+yt-dlp --remove-chapters "Intro" \
+  --remove-chapters "Outro" \
+  URL
+
+# Remove sponsor segments (with SponsorBlock)
+yt-dlp --sponsorblock-remove sponsor URL
+```
+
+### Modifying chapters
+
+```bash
+# Force keyframes at chapter boundaries
+yt-dlp --split-chapters \
+  --force-keyframes-at-cuts \
+  URL
+```
+
+## SponsorBlock Integration
+
+Remove or mark sponsor segments in YouTube videos:
+
+<CodeGroup>
+```bash Mark Segments
+# Create chapters for sponsor segments
+yt-dlp --sponsorblock-mark all URL
+
+# Mark specific categories
+yt-dlp --sponsorblock-mark sponsor,selfpromo URL
+
+# Exclude categories
+yt-dlp --sponsorblock-mark all,-filler URL
+```
+
+```bash Remove Segments
+# Remove sponsor segments from video
+yt-dlp --sponsorblock-remove sponsor URL
+
+# Remove multiple categories
+yt-dlp --sponsorblock-remove sponsor,selfpromo,intro URL
+
+# Default removal (all except filler)
+yt-dlp --sponsorblock-remove default URL
+```
+
+```bash Custom Chapter Titles
+# Customize SponsorBlock chapter titles
+yt-dlp --sponsorblock-mark all \
+  --sponsorblock-chapter-title "[%(category)s]" \
+  URL
+```
+</CodeGroup>
+
+<Tip>
+See the [SponsorBlock guide](/guides/sponsorblock) for detailed usage.
+</Tip>
+
+## File Fixup
+
+Automatically fix common file issues:
+
+```bash
+# Auto-detect and fix (default)
+yt-dlp --fixup detect_or_warn URL
+
+# Force fixing even if file exists
+yt-dlp --fixup force URL
+
+# Never fix
+yt-dlp --fixup never URL
+
+# Only warn about issues
+yt-dlp --fixup warn URL
+```
+
+## Custom Post-Processors
+
+### Execute commands
+
+<CodeGroup>
+```bash After Download
+# Run command after each download
+yt-dlp --exec "echo Downloaded: {}" URL
+
+# Move to folder
+yt-dlp --exec "mv {} /path/to/folder/" URL
+```
+
+```bash At Different Stages
+# Before download
+yt-dlp --exec "before_dl:echo Starting: {}" URL
+
+# After move to final location
+yt-dlp --exec "after_move:echo Finished: {}" URL
+
+# At playlist end
+yt-dlp --exec "playlist:echo Playlist complete" URL
+```
+
+```bash Complex Commands
+# Use output template syntax
+yt-dlp --exec 'notify-send "Downloaded" "%(title)s"' URL
+
+# Multiple commands
+yt-dlp --exec "cp {} ~/backup/" \
+  --exec "after_move:echo Done" \
+  URL
+```
+</CodeGroup>
+
+## Post-Processor Arguments
+
+Pass custom arguments to ffmpeg and other post-processors:
+
+<CodeGroup>
+```bash FFmpeg Arguments
+# Arguments to ffmpeg
+yt-dlp --ppa "ffmpeg:-c:v libx264 -preset slow" URL
+
+# Audio normalization
+yt-dlp --ppa "ffmpeg:-af loudnorm" URL
+```
+
+```bash Input/Output Arguments
+# Before input file
+yt-dlp --ppa "ffmpeg_i:-ss 10" URL
+
+# Before output file
+yt-dlp --ppa "ffmpeg_o:-c:v copy" URL
+```
+
+```bash Post-Processor Specific
+# Arguments only for specific post-processor
+yt-dlp --ppa "ExtractAudio+ffmpeg:-q:a 0" URL
+
+# For VideoRemuxer
+yt-dlp --ppa "VideoRemuxer+ffmpeg:-c copy" URL
+```
+</CodeGroup>
+
+## Concatenating Playlists
+
+Merge playlist videos into single file:
+
+```bash
+# Concatenate multi-part videos (default)
+yt-dlp --concat-playlist multi_video URL
+
+# Always concatenate
+yt-dlp --concat-playlist always URL
+
+# Never concatenate
+yt-dlp --concat-playlist never URL
+
+# Custom output for concatenated file
+yt-dlp --concat-playlist always \
+  -o "pl_video:%(playlist)s.%(ext)s" \
+  URL
+```
+
+<Warning>
+All videos must have the same codecs and number of streams to be concatenable.
+</Warning>
+
+## Plugin Post-Processors
+
+Use custom post-processor plugins:
+
+```bash
+# Enable plugin post-processor
+yt-dlp --use-postprocessor NAME URL
+
+# With arguments
+yt-dlp --use-postprocessor NAME:arg1=value;arg2=value URL
+
+# Execute at specific time
+yt-dlp --use-postprocessor NAME:when=after_move URL
+```
+
+## Advanced Workflows
+
+### Music downloads
+
+```bash
+yt-dlp -x --audio-format mp3 --audio-quality 0 \
+  --embed-metadata \
+  --embed-thumbnail \
+  --parse-metadata "%(uploader|)s:%(meta_artist)s" \
+  --parse-metadata "%(playlist_title|)s:%(meta_album)s" \
+  -o "%(artist)s/%(album)s/%(title)s.%(ext)s" \
+  PLAYLIST_URL
+```
+
+### Archival with metadata
+
+```bash
+yt-dlp -f "bv*+ba" \
+  --embed-metadata \
+  --embed-thumbnail \
+  --embed-subs \
+  --write-description \
+  --write-info-json \
+  --write-comments \
+  --sponsorblock-remove all \
+  URL
+```
+
+### Format for devices
+
+```bash
+# Apple devices
+yt-dlp --merge-output-format mp4 \
+  --remux-video mp4 \
+  --embed-metadata \
+  --embed-subs \
+  -S "vcodec:h264,acodec:aac" \
+  URL
+```
+
+### Stream processing
+
+```bash
+# Download, process, and stream
+yt-dlp -o - URL | ffmpeg -i pipe:0 -f matroska - | mpv -
+```
+
+## Overwrite Behavior
+
+```bash
+# Don't overwrite files (default for video)
+yt-dlp --no-overwrites URL
+
+# Overwrite all files
+yt-dlp --force-overwrites URL
+
+# Overwrite post-processed files (default)
+yt-dlp --post-overwrites URL
+
+# Don't overwrite post-processed files
+yt-dlp --no-post-overwrites URL
+```
+
+## Keeping Intermediate Files
+
+```bash
+# Keep video file after audio extraction
+yt-dlp -x --keep-video URL
+
+# Keep downloaded fragments
+yt-dlp --keep-fragments URL
+```
+
+## Troubleshooting
+
+### Post-processing fails
+
+```bash
+# Check ffmpeg installation
+ffmpeg -version
+
+# Specify ffmpeg location
+yt-dlp --ffmpeg-location /path/to/ffmpeg URL
+
+# View detailed error messages
+yt-dlp --verbose URL
+```
+
+### Metadata not embedding
+
+```bash
+# Install required libraries
+pip install mutagen  # For better metadata support
+
+# Use compatible format
+yt-dlp --merge-output-format mp4 --embed-metadata URL
+```
+
+### Thumbnail not embedding
+
+```bash
+# Convert thumbnail format
+yt-dlp --embed-thumbnail --convert-thumbnails jpg URL
+
+# Use AtomicParsley for MP4 (if mutagen fails)
+yt-dlp --embed-thumbnail \
+  --compat-options embed-thumbnail-atomicparsley \
+  URL
+```
+
+## Next Steps
+
+<CardGroup cols={2}>
+  <Card title="Audio Extraction" icon="music" href="/guides/audio-extraction">
+    Detailed audio extraction guide
+  </Card>
+  <Card title="Format Conversion" icon="arrow-right-arrow-left" href="/guides/format-conversion">
+    Converting between formats
+  </Card>
+  <Card title="Metadata Modification" icon="tags" href="/guides/metadata-modification">
+    Parse and modify metadata
+  </Card>
+  <Card title="SponsorBlock" icon="forward" href="/guides/sponsorblock">
+    Remove sponsor segments
+  </Card>
+</CardGroup>

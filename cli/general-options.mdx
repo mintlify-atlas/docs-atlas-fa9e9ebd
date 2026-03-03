@@ -1,0 +1,254 @@
+---
+title: General Options
+description: Core yt-dlp options for help, updates, error handling, and configuration
+---
+
+<ParamField path="-h, --help" type="flag">
+  Print help text and exit
+</ParamField>
+
+<ParamField path="--version" type="flag">
+  Print program version and exit
+</ParamField>
+
+<ParamField path="-U, --update" type="flag">
+  Update this program to the latest version
+</ParamField>
+
+<ParamField path="--no-update" type="flag" default="true">
+  Do not check for updates
+</ParamField>
+
+<ParamField path="--update-to" type="string">
+  Upgrade/downgrade to a specific version. Format: `[CHANNEL]@[TAG]`
+  
+  CHANNEL can be a repository as well. CHANNEL and TAG default to "stable" and "latest" respectively if omitted.
+  
+  Supported channels: `stable`, `nightly`, `master`
+  
+  **Example:**
+  ```bash
+  yt-dlp --update-to nightly
+  yt-dlp --update-to stable@2023.07.06
+  ```
+</ParamField>
+
+## Error Handling
+
+<ParamField path="-i, --ignore-errors" type="flag">
+  Ignore download and postprocessing errors. The download will be considered successful even if the postprocessing fails
+</ParamField>
+
+<ParamField path="--no-abort-on-error" type="flag" default="true">
+  Continue with next video on download errors; e.g. to skip unavailable videos in a playlist
+</ParamField>
+
+<ParamField path="--abort-on-error" type="flag">
+  Abort downloading of further videos if an error occurs
+  
+  Alias: `--no-ignore-errors`
+</ParamField>
+
+## Extractors
+
+<ParamField path="--list-extractors" type="flag">
+  List all supported extractors and exit
+</ParamField>
+
+<ParamField path="--extractor-descriptions" type="flag">
+  Output descriptions of all supported extractors and exit
+</ParamField>
+
+<ParamField path="--use-extractors" type="string">
+  Extractor names to use separated by commas. You can also use regexes, "all", "default" and "end" (end URL matching)
+  
+  Prefix the name with a "-" to exclude it. Use `--list-extractors` for a list of extractor names.
+  
+  Alias: `--ies`
+  
+  **Example:**
+  ```bash
+  yt-dlp --ies "holodex.*,end,youtube"
+  yt-dlp --ies default,-generic
+  ```
+</ParamField>
+
+<ParamField path="--default-search" type="string">
+  Use this prefix for unqualified URLs
+  
+  Values:
+  - `auto` - Let yt-dlp guess
+  - `auto_warning` - Emit a warning when guessing
+  - `error` - Throw an error
+  - `fixup_error` (default) - Repair broken URLs, but emit an error if not possible
+  
+  **Example:**
+  ```bash
+  yt-dlp --default-search "gvsearch2:python"  # Downloads 2 videos from Google Videos
+  ```
+</ParamField>
+
+## Configuration
+
+<ParamField path="--ignore-config" type="flag">
+  Don't load any more configuration files except those given to `--config-locations`
+  
+  For backward compatibility, if this option is found inside the system configuration file, the user configuration is not loaded.
+  
+  Alias: `--no-config`
+</ParamField>
+
+<ParamField path="--no-config-locations" type="flag" default="true">
+  Do not load any custom configuration files. When given inside a configuration file, ignore all previous `--config-locations` defined in the current file
+</ParamField>
+
+<ParamField path="--config-locations" type="string">
+  Location of the main configuration file; either the path to the config or its containing directory ("-" for stdin)
+  
+  Can be used multiple times and inside other configuration files
+</ParamField>
+
+## Plugins
+
+<ParamField path="--plugin-dirs" type="string">
+  Path to an additional directory to search for plugins. This option can be used multiple times to add multiple directories.
+  
+  Use "default" to search the default plugin directories
+</ParamField>
+
+<ParamField path="--no-plugin-dirs" type="flag">
+  Clear plugin directories to search, including defaults and those provided by previous `--plugin-dirs`
+</ParamField>
+
+## JavaScript Runtime
+
+<ParamField path="--js-runtimes" type="string">
+  Additional JavaScript runtime to enable, with an optional location for the runtime
+  
+  Format: `RUNTIME[:PATH]` where PATH is either the path to the binary or its containing directory
+  
+  This option can be used multiple times to enable multiple runtimes.
+  
+  Supported runtimes (in priority order): `deno`, `node`, `quickjs`, `bun`
+  
+  Only "deno" is enabled by default. The highest priority runtime that is both enabled and available will be used.
+</ParamField>
+
+<ParamField path="--no-js-runtimes" type="flag">
+  Clear JavaScript runtimes to enable, including defaults and those provided by previous `--js-runtimes`
+</ParamField>
+
+## Remote Components
+
+<ParamField path="--remote-components" type="string">
+  Remote components to allow yt-dlp to fetch when required
+  
+  This option is currently not needed if you are using an official executable or have the requisite version of the yt-dlp-ejs package installed.
+  
+  Supported values:
+  - `ejs:npm` - External JavaScript components from npm
+  - `ejs:github` - External JavaScript components from yt-dlp-ejs GitHub
+  
+  By default, no remote components are allowed
+</ParamField>
+
+<ParamField path="--no-remote-components" type="flag">
+  Disallow fetching of all remote components, including any previously allowed by `--remote-components` or defaults
+</ParamField>
+
+## Playlist Options
+
+<ParamField path="--flat-playlist" type="flag">
+  Do not extract a playlist's URL result entries; some entry metadata may be missing and downloading may be bypassed
+</ParamField>
+
+<ParamField path="--no-flat-playlist" type="flag" default="true">
+  Fully extract the videos of a playlist
+</ParamField>
+
+## Livestream Options
+
+<ParamField path="--live-from-start" type="flag">
+  Download livestreams from the start
+  
+  Currently experimental and only supported for YouTube, Twitch, and TVer
+</ParamField>
+
+<ParamField path="--no-live-from-start" type="flag" default="true">
+  Download livestreams from the current time
+</ParamField>
+
+<ParamField path="--wait-for-video" type="string">
+  Wait for scheduled streams to become available
+  
+  Pass the minimum number of seconds (or range) to wait between retries
+  
+  Format: `MIN[-MAX]`
+</ParamField>
+
+<ParamField path="--no-wait-for-video" type="flag" default="true">
+  Do not wait for scheduled streams
+</ParamField>
+
+<ParamField path="--mark-watched" type="flag">
+  Mark videos watched (even with `--simulate`)
+</ParamField>
+
+<ParamField path="--no-mark-watched" type="flag" default="true">
+  Do not mark videos watched
+</ParamField>
+
+## Output Formatting
+
+<ParamField path="--color" type="string">
+  Whether to emit color codes in output, optionally prefixed by the STREAM (stdout or stderr) to apply the setting to
+  
+  Format: `[STREAM:]POLICY`
+  
+  Values:
+  - `always`
+  - `auto` (default)
+  - `never`
+  - `no_color` - Use non color terminal sequences
+  - `auto-tty` - Decide based on terminal support only
+  - `no_color-tty`
+  
+  Can be used multiple times
+</ParamField>
+
+## Compatibility
+
+<ParamField path="--compat-options" type="string">
+  Options that can help keep compatibility with youtube-dl or youtube-dlc configurations by reverting some of the changes made in yt-dlp
+  
+  See "Differences in default behavior" for details
+</ParamField>
+
+## Aliases
+
+<ParamField path="--alias" type="string">
+  Create aliases for an option string
+  
+  Unless an alias starts with a dash "-", it is prefixed with "--". Arguments are parsed according to the Python string formatting mini-language.
+  
+  This option can be used multiple times. Each alias may be triggered a maximum of 100 times as a safety measure.
+  
+  **Example:**
+  ```bash
+  yt-dlp --alias get-audio,-X "-S aext:{0},abr -x --audio-format {0}"
+  # Creates --get-audio and -X that takes an argument and expands the options
+  ```
+</ParamField>
+
+<ParamField path="-t, --preset-alias" type="string">
+  Applies a predefined set of options
+  
+  Available presets: `mp3`, `aac`, `mp4`, `mkv`, `sleep`
+  
+  See the "Preset Aliases" section for more info. This option can be used multiple times.
+  
+  **Example:**
+  ```bash
+  yt-dlp -t mp3 URL
+  ```
+</ParamField>

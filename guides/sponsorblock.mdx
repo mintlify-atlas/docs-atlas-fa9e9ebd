@@ -1,0 +1,407 @@
+---
+title: 'SponsorBlock Integration'
+description: 'Remove or mark sponsor segments in YouTube videos using SponsorBlock'
+icon: 'forward'
+---
+
+## Overview
+
+yt-dlp integrates with the [SponsorBlock API](https://sponsor.ajay.app) to automatically skip or mark various segments in YouTube videos, including sponsors, intros, outros, self-promotion, and more.
+
+<Tip>
+SponsorBlock is a crowdsourced database of sponsor segments. The community submits timestamps, which are then used to skip these segments.
+</Tip>
+
+## Segment Categories
+
+SponsorBlock recognizes these segment types:
+
+| Category | Description |
+|:---------|:------------|
+| `sponsor` | Paid promotion, paid referrals, and direct advertisements |
+| `intro` | Intermission/intro animation, typically at the start |
+| `outro` | Endcards/credits at the end of the video |
+| `selfpromo` | Unpaid/self-promotion (e.g., merch, donations, social media) |
+| `preview` | Quick recap of previous episodes, or preview of what's coming |
+| `filler` | Tangential scenes added only for filler or humor |
+| `interaction` | Reminder to like, subscribe, or follow on social media |
+| `music_offtopic` | Non-music section in a music video |
+| `poi_highlight` | Point of interest highlight (not available for removal) |
+| `chapter` | Video chapters (not available for removal) |
+| `all` | All categories |
+| `default` | For marking: all categories; for removing: all except filler |
+
+## Marking Segments
+
+Create chapter markers for sponsor segments without removing them:
+
+<CodeGroup>
+```bash Mark All Segments
+# Create chapters for all segment types
+yt-dlp --sponsorblock-mark all URL
+```
+
+```bash Mark Specific Categories
+# Only mark sponsors and self-promotion
+yt-dlp --sponsorblock-mark sponsor,selfpromo URL
+
+# Mark everything except previews
+yt-dlp --sponsorblock-mark all,-preview URL
+```
+
+```bash Default Marking
+# Use default categories (all)
+yt-dlp --sponsorblock-mark default URL
+```
+</CodeGroup>
+
+### Custom Chapter Titles
+
+Customize how SponsorBlock chapters appear:
+
+```bash
+# Default format
+yt-dlp --sponsorblock-mark all \
+  --sponsorblock-chapter-title "[SponsorBlock]: %(category_names)l" \
+  URL
+
+# Simple format
+yt-dlp --sponsorblock-mark all \
+  --sponsorblock-chapter-title "[%(category)s]" \
+  URL
+
+# With timestamps
+yt-dlp --sponsorblock-mark all \
+  --sponsorblock-chapter-title "%(start_time)s - %(category_names)l" \
+  URL
+```
+
+Available template fields:
+- `start_time`: Segment start time
+- `end_time`: Segment end time
+- `category`: Category ID (e.g., "sponsor")
+- `categories`: List of category IDs
+- `name`: Category name
+- `category_names`: List of category names
+
+## Removing Segments
+
+<Warning>
+Removing segments requires re-encoding the video with ffmpeg, which takes time and may reduce quality slightly.
+</Warning>
+
+Permanently remove segments from the downloaded video:
+
+<Steps>
+  <Step title="Remove sponsors only">
+    ```bash
+    yt-dlp --sponsorblock-remove sponsor URL
+    ```
+  </Step>
+
+  <Step title="Remove multiple categories">
+    ```bash
+    # Remove sponsors, self-promotion, and intros
+    yt-dlp --sponsorblock-remove sponsor,selfpromo,intro URL
+    ```
+  </Step>
+
+  <Step title="Use default removal">
+    ```bash
+    # Remove all segments except filler
+    yt-dlp --sponsorblock-remove default URL
+    ```
+  </Step>
+</Steps>
+
+### Exclude categories
+
+```bash
+# Remove all except filler and interaction
+yt-dlp --sponsorblock-remove all,-filler,-interaction URL
+```
+
+## Combining Mark and Remove
+
+You can both mark and remove different categories:
+
+```bash
+# Remove sponsors, mark outros
+yt-dlp --sponsorblock-remove sponsor \
+  --sponsorblock-mark outro \
+  URL
+
+# Remove ads and promos, mark all others
+yt-dlp --sponsorblock-remove sponsor,selfpromo \
+  --sponsorblock-mark intro,outro,interaction \
+  URL
+```
+
+<Tip>
+If a category appears in both `--sponsorblock-mark` and `--sponsorblock-remove`, removal takes precedence.
+</Tip>
+
+## Common Use Cases
+
+### Clean viewing experience
+
+```bash
+# Remove all distractions
+yt-dlp --sponsorblock-remove sponsor,selfpromo,interaction \
+  --sponsorblock-mark intro,outro \
+  URL
+```
+
+### Music videos
+
+```bash
+# Skip non-music sections
+yt-dlp --sponsorblock-remove music_offtopic,sponsor URL
+```
+
+### Podcast/long-form content
+
+```bash
+# Keep chapter structure, remove sponsors
+yt-dlp --sponsorblock-remove sponsor,selfpromo \
+  --sponsorblock-mark intro,outro \
+  --embed-chapters \
+  URL
+```
+
+### Educational content
+
+```bash
+# Remove sponsor but keep other content
+yt-dlp --sponsorblock-remove sponsor \
+  --sponsorblock-mark selfpromo,interaction \
+  URL
+```
+
+## Audio Extraction with SponsorBlock
+
+Remove segments when extracting audio:
+
+```bash
+# Extract audio without sponsors
+yt-dlp -x --audio-format mp3 \
+  --sponsorblock-remove sponsor,selfpromo \
+  URL
+
+# Music downloads without non-music sections
+yt-dlp -x --audio-format mp3 \
+  --sponsorblock-remove music_offtopic,sponsor,intro,outro \
+  --embed-metadata \
+  URL
+```
+
+## SponsorBlock API Configuration
+
+### Custom API server
+
+```bash
+# Use different SponsorBlock instance
+yt-dlp --sponsorblock-api "https://sponsor.example.com" \
+  --sponsorblock-remove sponsor \
+  URL
+```
+
+Default API: `https://sponsor.ajay.app`
+
+### Disable SponsorBlock
+
+```bash
+# Disable all SponsorBlock features
+yt-dlp --no-sponsorblock URL
+```
+
+## Working with Chapters
+
+### Split by chapters after removing sponsors
+
+```bash
+# Remove sponsors, then split into chapters
+yt-dlp --sponsorblock-remove sponsor \
+  --split-chapters \
+  -o "chapter:%(title)s - %(section_number)s %(section_title)s.%(ext)s" \
+  URL
+```
+
+### Force keyframes for clean cuts
+
+```bash
+# Better quality cuts (slower processing)
+yt-dlp --sponsorblock-remove sponsor \
+  --force-keyframes-at-cuts \
+  URL
+```
+
+<Warning>
+Using `--force-keyframes-at-cuts` requires re-encoding and significantly increases processing time.
+</Warning>
+
+## Playlist Processing
+
+Apply SponsorBlock to entire playlists:
+
+```bash
+# Remove sponsors from all videos in playlist
+yt-dlp --sponsorblock-remove sponsor,selfpromo \
+  -o "%(playlist)s/%(playlist_index)s - %(title)s.%(ext)s" \
+  PLAYLIST_URL
+
+# With download archive to skip processed videos
+yt-dlp --sponsorblock-remove sponsor \
+  --download-archive archive.txt \
+  PLAYLIST_URL
+```
+
+## Performance Considerations
+
+### Marking (Fast)
+
+```bash
+# Just adds chapter markers, no re-encoding needed
+yt-dlp --sponsorblock-mark all URL
+```
+
+This is fast because it only modifies metadata.
+
+### Removing (Slow)
+
+```bash
+# Requires re-encoding with ffmpeg
+yt-dlp --sponsorblock-remove sponsor URL
+```
+
+This takes time proportional to video length and requires ffmpeg.
+
+<Tip>
+If you want to preview segments before removal, use `--sponsorblock-mark` first, then manually check the chapters.
+</Tip>
+
+## Advanced Examples
+
+### Complete automated workflow
+
+```bash
+yt-dlp \
+  --sponsorblock-remove sponsor,selfpromo,interaction \
+  --sponsorblock-mark intro,outro \
+  --embed-chapters \
+  --embed-metadata \
+  --embed-thumbnail \
+  --merge-output-format mp4 \
+  -o "~/Videos/%(uploader)s/%(title)s.%(ext)s" \
+  URL
+```
+
+### Audio podcast with clean chapters
+
+```bash
+yt-dlp -x --audio-format mp3 \
+  --sponsorblock-remove sponsor,selfpromo \
+  --sponsorblock-mark intro,outro \
+  --embed-metadata \
+  --embed-thumbnail \
+  --parse-metadata "%(uploader|)s:%(meta_artist)s" \
+  -o "Podcasts/%(uploader)s/%(upload_date)s - %(title)s.%(ext)s" \
+  URL
+```
+
+### Minimal file size
+
+```bash
+# Remove all removable segments
+yt-dlp --sponsorblock-remove sponsor,intro,outro,selfpromo,preview,interaction,music_offtopic \
+  -S "+size" \
+  URL
+```
+
+## Verify Segments
+
+Check what segments are available before downloading:
+
+```bash
+# Print information about SponsorBlock segments
+yt-dlp --print "%(sponsorblock_chapters)s" URL
+
+# Simulate to see what would be done
+yt-dlp --simulate \
+  --sponsorblock-remove sponsor \
+  --verbose \
+  URL
+```
+
+## Troubleshooting
+
+### No segments found
+
+<Tip>
+Not all videos have SponsorBlock data. The database is crowdsourced and may not cover every video.
+</Tip>
+
+```bash
+# Check if video has SponsorBlock data
+yt-dlp --print "%(sponsorblock_chapters)s" URL
+
+# Use verbose to see API responses
+yt-dlp --sponsorblock-mark all --verbose URL
+```
+
+### Segments not removed correctly
+
+```bash
+# Ensure ffmpeg is working
+ffmpeg -version
+
+# Use force keyframes for precise cuts
+yt-dlp --sponsorblock-remove sponsor \
+  --force-keyframes-at-cuts \
+  URL
+```
+
+### API connection issues
+
+```bash
+# Test with verbose output
+yt-dlp --sponsorblock-mark sponsor --verbose URL
+
+# Use alternative API server
+yt-dlp --sponsorblock-api "https://sponsor.ajay.app" \
+  --sponsorblock-remove sponsor \
+  URL
+```
+
+## SponsorBlock on Other Platforms
+
+<Warning>
+SponsorBlock integration currently only works for YouTube videos. Other platforms are not supported.
+</Warning>
+
+## Contributing to SponsorBlock
+
+Help improve the SponsorBlock database:
+
+- Install the [browser extension](https://sponsor.ajay.app)
+- Submit segments while watching videos
+- Vote on existing segments
+
+Your contributions help the entire community!
+
+## Next Steps
+
+<CardGroup cols={2}>
+  <Card title="Post-Processing" icon="gears" href="/guides/post-processing">
+    Other post-processing options
+  </Card>
+  <Card title="Format Conversion" icon="arrow-right-arrow-left" href="/guides/format-conversion">
+    Converting video formats
+  </Card>
+  <Card title="Playlists" icon="list" href="/guides/playlists">
+    Process entire playlists
+  </Card>
+  <Card title="Options Reference" icon="book" href="/cli/sponsorblock-options">
+    SponsorBlock options reference
+  </Card>
+</CardGroup>

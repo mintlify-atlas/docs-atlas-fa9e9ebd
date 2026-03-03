@@ -1,0 +1,414 @@
+---
+title: 'Format Conversion'
+description: 'Convert videos and audio between different formats using yt-dlp'
+icon: 'arrow-right-arrow-left'
+---
+
+## Overview
+
+yt-dlp can convert downloaded media to different formats using ffmpeg. This includes remuxing (changing container without re-encoding) and transcoding (re-encoding to a different codec).
+
+<Tip>
+Remuxing is faster and maintains quality, while transcoding allows codec changes but may reduce quality.
+</Tip>
+
+## Remuxing Videos
+
+Remux changes the container format without re-encoding the video/audio streams:
+
+```bash
+# Remux to MP4 if needed
+yt-dlp --remux-video mp4 URL
+
+# Remux to MKV
+yt-dlp --remux-video mkv URL
+
+# Remux to WebM
+yt-dlp --remux-video webm URL
+```
+
+### Supported container formats
+
+- **Video**: `mp4`, `mkv`, `webm`, `flv`, `avi`, `mov`, `gif`
+- **Audio**: `m4a`, `aac`, `mp3`, `opus`, `ogg`, `flac`, `wav`, `alac`, `mka`, `aiff`
+
+## Conditional Remuxing
+
+Use rules to remux specific formats:
+
+<CodeGroup>
+```bash Single Rule
+# Remux AAC files to M4A
+yt-dlp --remux-video "aac>m4a" URL
+```
+
+```bash Multiple Rules
+# Multiple conversion rules
+yt-dlp --remux-video "aac>m4a/mov>mp4/mkv" URL
+```
+
+```bash Chain Rules
+# This will:
+# - Remux AAC to M4A
+# - Remux MOV to MP4  
+# - Remux everything else to MKV
+yt-dlp --remux-video "aac>m4a/mov>mp4/mkv" URL
+```
+</CodeGroup>
+
+## Re-encoding Videos
+
+<Warning>
+Re-encoding reduces quality and takes much longer than remuxing. Use only when necessary.
+</Warning>
+
+Transcode videos to different codecs:
+
+```bash
+# Re-encode to MP4 (if necessary)
+yt-dlp --recode-video mp4 URL
+
+# Re-encode to WebM
+yt-dlp --recode-video webm URL
+
+# Conditional re-encoding with same syntax as remux
+yt-dlp --recode-video "avi>mp4/flv>mp4/mp4" URL
+```
+
+## Audio Format Conversion
+
+### Extract and convert audio
+
+<Steps>
+  <Step title="Basic extraction">
+    ```bash
+    # Extract audio in best format
+    yt-dlp -x URL
+    ```
+  </Step>
+
+  <Step title="Convert to specific format">
+    ```bash
+    # Convert to MP3
+    yt-dlp -x --audio-format mp3 URL
+    
+    # Convert to AAC
+    yt-dlp -x --audio-format aac URL
+    
+    # Convert to FLAC (lossless)
+    yt-dlp -x --audio-format flac URL
+    ```
+  </Step>
+
+  <Step title="Set audio quality">
+    ```bash
+    # VBR quality (0=best, 10=worst)
+    yt-dlp -x --audio-format mp3 --audio-quality 0 URL
+    
+    # Specific bitrate
+    yt-dlp -x --audio-format mp3 --audio-quality 320K URL
+    ```
+  </Step>
+</Steps>
+
+### Conditional audio conversion
+
+```bash
+# Convert opus to mp3, keep others as best
+yt-dlp -x --audio-format "opus>mp3/best" URL
+```
+
+## Format Selection with Conversion
+
+Combine format selection with conversion for precise control:
+
+<CodeGroup>
+```bash Best Quality MP4
+# Download best video+audio and merge to MP4
+yt-dlp -f "bv*+ba" --merge-output-format mp4 URL
+```
+
+```bash Specific Codecs
+# Best h264 video + AAC audio in MP4
+yt-dlp -f "bv*[vcodec^=avc]+ba[acodec^=mp4a]" \
+  --merge-output-format mp4 URL
+```
+
+```bash With Remux
+# Ensure final output is MP4
+yt-dlp -f "bv*+ba/b" \
+  --merge-output-format mp4 \
+  --remux-video mp4 URL
+```
+</CodeGroup>
+
+## Preset Format Conversions
+
+yt-dlp includes useful presets:
+
+### MP4 Preset
+
+```bash
+# Equivalent to:
+# --merge-output-format mp4 --remux-video mp4
+# -S vcodec:h264,lang,quality,res,fps,hdr:12,acodec:aac
+yt-dlp -t mp4 URL
+```
+
+This preset:
+- Sets output to MP4 container
+- Prefers H.264 video codec
+- Prefers AAC audio codec
+- Optimizes for compatibility
+
+### MKV Preset
+
+```bash
+# Equivalent to:
+# --merge-output-format mkv --remux-video mkv
+yt-dlp -t mkv URL
+```
+
+## Converting Existing Files
+
+Convert already downloaded videos:
+
+<Steps>
+  <Step title="Download metadata">
+    ```bash
+    # First download with metadata
+    yt-dlp --write-info-json URL
+    ```
+  </Step>
+
+  <Step title="Re-process the file">
+    ```bash
+    # Process using saved info.json
+    yt-dlp --load-info-json video.info.json \
+      --remux-video mp4
+    ```
+  </Step>
+</Steps>
+
+## Subtitle Format Conversion
+
+Convert subtitle formats:
+
+```bash
+# Convert subtitles to SRT
+yt-dlp --write-subs --convert-subs srt URL
+
+# Convert to VTT
+yt-dlp --write-subs --convert-subs vtt URL
+
+# Convert to ASS
+yt-dlp --write-subs --convert-subs ass URL
+
+# Disable conversion (keep original)
+yt-dlp --write-subs --convert-subs none URL
+```
+
+## Thumbnail Format Conversion
+
+Convert thumbnail images:
+
+```bash
+# Convert thumbnails to JPG
+yt-dlp --write-thumbnail --convert-thumbnails jpg URL
+
+# Convert to PNG
+yt-dlp --write-thumbnail --convert-thumbnails png URL
+
+# Convert to WebP
+yt-dlp --write-thumbnail --convert-thumbnails webp URL
+
+# Multiple rules (similar to remux-video)
+yt-dlp --write-thumbnail --convert-thumbnails "webp>jpg/png" URL
+```
+
+## Advanced Conversion Scenarios
+
+### Encode for specific devices
+
+<CodeGroup>
+```bash Apple Devices
+# H.264 + AAC in MP4 (maximum compatibility)
+yt-dlp -f "bv*[vcodec^=avc]+ba[acodec^=mp4a]" \
+  --merge-output-format mp4 \
+  --ppa "ffmpeg:-c:v libx264 -c:a aac" \
+  URL
+```
+
+```bash Android Devices
+# Modern codec support
+yt-dlp --merge-output-format mp4 \
+  --remux-video mp4 \
+  -S "vcodec:h264,acodec:aac" \
+  URL
+```
+
+```bash Web Streaming
+# WebM for web playback
+yt-dlp -f "bv*[ext=webm]+ba[ext=webm]" \
+  --merge-output-format webm \
+  URL
+```
+</CodeGroup>
+
+### Compress video
+
+<Warning>
+Re-encoding will reduce quality. Always keep original files when compressing.
+</Warning>
+
+```bash
+# Download and compress
+yt-dlp URL \
+  --recode-video mp4 \
+  --ppa "ffmpeg:-c:v libx264 -crf 23 -c:a aac -b:a 128k"
+```
+
+### Convert with custom ffmpeg options
+
+```bash
+# Custom video encoding
+yt-dlp URL \
+  --recode-video mp4 \
+  --ppa "ffmpeg:-c:v libx264 -preset slow -crf 18"
+
+# Custom audio encoding  
+yt-dlp -x --audio-format mp3 \
+  --ppa "ffmpeg:-q:a 0" \
+  URL
+```
+
+## Merge Multiple Streams
+
+Merge video and audio while converting:
+
+```bash
+# Download best video and audio, merge to MP4
+yt-dlp -f "bv+ba" \
+  --merge-output-format mp4 \
+  URL
+
+# Merge specific formats
+yt-dlp -f "137+140" \
+  --merge-output-format mp4 \
+  URL
+```
+
+### Merge with multiple audio tracks
+
+```bash
+# Enable audio multistreams and merge
+yt-dlp -f "bv*+ba+ba.2" \
+  --audio-multistreams \
+  --merge-output-format mkv \
+  URL
+```
+
+## Fixup Options
+
+Automatically fix common format issues:
+
+```bash
+# Auto-detect and fix file issues
+yt-dlp --fixup detect_or_warn URL
+
+# Force fixing
+yt-dlp --fixup force URL
+
+# Never fix
+yt-dlp --fixup never URL
+```
+
+## Common Conversion Workflows
+
+### Maximum compatibility
+
+```bash
+# MP4 with H.264 and AAC (plays everywhere)
+yt-dlp -t mp4 -S "vcodec:h264,acodec:aac" URL
+```
+
+### Archival quality
+
+```bash
+# Best quality in MKV container
+yt-dlp -f "bv*+ba" --merge-output-format mkv \
+  --embed-metadata --embed-subs --embed-thumbnail \
+  URL
+```
+
+### Space-efficient
+
+```bash
+# Good quality, smaller file size
+yt-dlp --recode-video mp4 \
+  --ppa "ffmpeg:-c:v libx264 -crf 23 -c:a aac -b:a 128k" \
+  URL
+```
+
+### Audio for music players
+
+```bash
+# High quality M4A with metadata
+yt-dlp -x --audio-format m4a --audio-quality 256K \
+  --embed-metadata --embed-thumbnail \
+  URL
+```
+
+## Troubleshooting
+
+### Conversion fails
+
+```bash
+# Check ffmpeg version
+ffmpeg -version
+
+# Try remuxing instead of re-encoding
+yt-dlp --remux-video mp4 URL
+
+# Check if format supports the codec
+yt-dlp --list-formats URL
+```
+
+### Container doesn't support codec
+
+```bash
+# Use compatible container (MKV supports almost everything)
+yt-dlp --merge-output-format mkv URL
+
+# Or re-encode to compatible codec
+yt-dlp --recode-video mp4 URL
+```
+
+### Quality loss
+
+<Tip>
+Always prefer remuxing over re-encoding when you only need to change the container format.
+</Tip>
+
+```bash
+# Use remux instead of recode
+yt-dlp --remux-video mp4 URL  # Good
+yt-dlp --recode-video mp4 URL  # Avoid if possible
+```
+
+## Next Steps
+
+<CardGroup cols={2}>
+  <Card title="Post-Processing" icon="gears" href="/guides/post-processing">
+    Learn about all post-processing options
+  </Card>
+  <Card title="Audio Extraction" icon="music" href="/guides/audio-extraction">
+    Detailed audio extraction guide
+  </Card>
+  <Card title="Format Selection" icon="sliders" href="/core-concepts/format-selection">
+    Advanced format selection reference
+  </Card>
+  <Card title="Post-Processor Arguments" icon="terminal" href="/cli/post-processing-options">
+    ffmpeg and post-processor arguments
+  </Card>
+</CardGroup>

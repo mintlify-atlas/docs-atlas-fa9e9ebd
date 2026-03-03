@@ -1,0 +1,417 @@
+---
+title: Common Workarounds
+description: Solutions for common issues and troubleshooting tips
+---
+
+yt-dlp provides several workaround options to handle problematic websites, network issues, and other edge cases.
+
+## Network and Connection Issues
+
+### SSL Certificate Problems
+
+<Accordion title="SSL certificate validation errors">
+  If you encounter SSL certificate validation errors:
+
+  ```bash
+  yt-dlp --no-check-certificates <url>
+  ```
+
+  <Warning>
+  This disables certificate validation and may expose you to security risks. Only use this option if you trust the source.
+  </Warning>
+
+  Alternatively, use legacy server connection for servers that don't support RFC 5746:
+
+  ```bash
+  yt-dlp --legacy-server-connect <url>
+  ```
+</Accordion>
+
+### Encoding Issues
+
+<Accordion title="Character encoding problems in output">
+  Force a specific encoding:
+
+  ```bash
+  yt-dlp --encoding utf-8 <url>
+  ```
+
+  This is experimental and may not work in all cases.
+</Accordion>
+
+### Custom HTTP Headers
+
+<Accordion title="Websites requiring specific headers">
+  Add custom HTTP headers:
+
+  ```bash
+  yt-dlp --add-headers "User-Agent:Mozilla/5.0" --add-headers "Referer:https://example.com" <url>
+  ```
+
+  You can use this option multiple times to add multiple headers.
+</Accordion>
+
+### Using Insecure Connections
+
+<Accordion title="Force HTTP instead of HTTPS">
+  For YouTube and other supported sites:
+
+  ```bash
+  yt-dlp --prefer-insecure <url>
+  ```
+
+  <Note>
+  Currently supported only for YouTube and a few other sites.
+  </Note>
+</Accordion>
+
+## Rate Limiting and Throttling
+
+### Sleep Between Requests
+
+<Accordion title="Avoid getting rate-limited">
+  Add delays between operations:
+
+  ```bash
+  # Sleep between data extraction requests
+  yt-dlp --sleep-requests 2 <url>
+
+  # Sleep before each download
+  yt-dlp --sleep-interval 5 <url>
+
+  # Random sleep interval
+  yt-dlp --min-sleep-interval 2 --max-sleep-interval 5 <url>
+
+  # Sleep before subtitle downloads
+  yt-dlp --sleep-subtitles 1 <url>
+  ```
+
+  These options help avoid triggering anti-bot measures.
+</Accordion>
+
+### Retry Configuration
+
+<Accordion title="Configure retry behavior">
+  ```bash
+  # Set number of retries
+  yt-dlp --retries 10 <url>
+
+  # Infinite retries
+  yt-dlp --retries infinite <url>
+
+  # Configure retry sleep
+  yt-dlp --retry-sleep linear=1::2 <url>
+  yt-dlp --retry-sleep fragment:exp=1:20 <url>
+  ```
+</Accordion>
+
+## Terminal and Display Issues
+
+### Bidirectional Text Support
+
+<Accordion title="Terminal doesn't support bidirectional text">
+  Enable the bidi workaround:
+
+  ```bash
+  yt-dlp --bidi-workaround <url>
+  ```
+
+  Requires `bidiv` or `fribidi` executable in PATH.
+</Accordion>
+
+### Color Output Issues
+
+<Accordion title="Control color output">
+  ```bash
+  # Disable colors
+  yt-dlp --no-colors <url>
+  # or
+  yt-dlp --color no_color <url>
+
+  # Force colors for specific stream
+  yt-dlp --color stdout:always <url>
+  yt-dlp --color stderr:never <url>
+  ```
+</Accordion>
+
+## Download Issues
+
+### Format Selection Problems
+
+<Accordion title="Video format not available or download fails">
+  Try different format selection strategies:
+
+  ```bash
+  # List all available formats
+  yt-dlp -F <url>
+
+  # Select specific format
+  yt-dlp -f 22 <url>
+
+  # Fallback options
+  yt-dlp -f "bestvideo+bestaudio/best" <url>
+
+  # Prefer free formats
+  yt-dlp --prefer-free-formats <url>
+  ```
+</Accordion>
+
+### Geo-Restrictions
+
+<Accordion title="Video not available in your country">
+  Use a proxy or VPN:
+
+  ```bash
+  # HTTP/HTTPS proxy
+  yt-dlp --proxy http://proxy.example.com:8080 <url>
+
+  # SOCKS proxy
+  yt-dlp --proxy socks5://127.0.0.1:1080 <url>
+
+  # Geo-verification proxy (for IP checks only)
+  yt-dlp --geo-verification-proxy http://proxy.example.com:8080 <url>
+
+  # Fake X-Forwarded-For header
+  yt-dlp --xff "US" <url>
+  ```
+</Accordion>
+
+### Extraction Errors
+
+<Accordion title="Extractor fails or times out">
+  ```bash
+  # Increase socket timeout
+  yt-dlp --socket-timeout 30 <url>
+
+  # Use specific source address
+  yt-dlp --source-address 192.168.1.100 <url>
+
+  # Force IPv4/IPv6
+  yt-dlp --force-ipv4 <url>
+  yt-dlp --force-ipv6 <url>
+  ```
+</Accordion>
+
+### Fragment Download Issues
+
+<Accordion title="DASH/HLS fragment downloads failing">
+  ```bash
+  # Set fragment retries
+  yt-dlp --fragment-retries 10 <url>
+
+  # Skip unavailable fragments
+  yt-dlp --skip-unavailable-fragments <url>
+
+  # Keep fragments for debugging
+  yt-dlp --keep-fragments <url>
+  ```
+</Accordion>
+
+## Authentication Issues
+
+### Login Problems
+
+<Accordion title="Cannot login to website">
+  Try different authentication methods:
+
+  ```bash
+  # Use username and password
+  yt-dlp -u username -p password <url>
+
+  # Use .netrc file
+  yt-dlp --netrc <url>
+
+  # Specify netrc location
+  yt-dlp --netrc-location ~/.netrc-custom <url>
+
+  # Two-factor authentication
+  yt-dlp -u username -p password --twofactor CODE <url>
+  ```
+</Accordion>
+
+### Cookie Issues
+
+<Accordion title="Session cookies required">
+  ```bash
+  # Load cookies from browser
+  yt-dlp --cookies-from-browser chrome <url>
+  yt-dlp --cookies-from-browser firefox <url>
+
+  # Specify browser profile
+  yt-dlp --cookies-from-browser "firefox:~/.mozilla/firefox/profile" <url>
+
+  # Use cookies file
+  yt-dlp --cookies cookies.txt <url>
+  ```
+
+  Supported browsers: brave, chrome, chromium, edge, firefox, opera, safari, vivaldi, whale
+</Accordion>
+
+## Performance Issues
+
+### Slow Downloads
+
+<Accordion title="Download speed is too slow">
+  ```bash
+  # Increase concurrent fragments
+  yt-dlp --concurrent-fragments 5 <url>
+
+  # Use external downloader
+  yt-dlp --downloader aria2c <url>
+
+  # Adjust buffer size
+  yt-dlp --buffer-size 16K <url>
+
+  # Set HTTP chunk size
+  yt-dlp --http-chunk-size 10M <url>
+  ```
+</Accordion>
+
+### High CPU/Memory Usage
+
+<Accordion title="yt-dlp consuming too many resources">
+  ```bash
+  # Reduce concurrent fragments
+  yt-dlp --concurrent-fragments 1 <url>
+
+  # Use external downloader for HLS/DASH
+  yt-dlp --downloader m3u8:ffmpeg <url>
+
+  # Process playlist lazily
+  yt-dlp --lazy-playlist <url>
+  ```
+</Accordion>
+
+## Website-Specific Workarounds
+
+### YouTube Issues
+
+<Accordion title="YouTube download problems">
+  ```bash
+  # Ensure you have the latest version
+  yt-dlp -U
+
+  # Use specific user agent
+  yt-dlp --add-headers "User-Agent:Mozilla/5.0" <url>
+
+  # Use cookies from browser
+  yt-dlp --cookies-from-browser chrome <url>
+
+  # Bypass age restriction
+  yt-dlp --cookies-from-browser firefox <url>
+
+  # Download from start for live streams
+  yt-dlp --live-from-start <url>
+  ```
+</Accordion>
+
+### Generic Extractor
+
+<Accordion title="Force using generic extractor">
+  ```bash
+  # Use generic extractor
+  yt-dlp --ies generic <url>
+
+  # Force generic extractor only
+  yt-dlp --ies generic,default <url>
+  ```
+</Accordion>
+
+## Debugging
+
+### Enable Verbose Output
+
+<Accordion title="Get detailed debug information">
+  ```bash
+  # Verbose output
+  yt-dlp --verbose <url>
+
+  # Print HTTP traffic
+  yt-dlp --print-traffic <url>
+
+  # Dump pages for debugging
+  yt-dlp --dump-pages <url>
+
+  # Write pages to files
+  yt-dlp --write-pages <url>
+  ```
+</Accordion>
+
+### Test Without Downloading
+
+<Accordion title="Test extraction without downloading">
+  ```bash
+  # Simulate download
+  yt-dlp --simulate <url>
+
+  # Get JSON info
+  yt-dlp --dump-json <url>
+
+  # List formats without downloading
+  yt-dlp -F <url>
+  ```
+</Accordion>
+
+## Configuration File Workarounds
+
+### Permanent Workaround Settings
+
+Create a configuration file to apply workarounds permanently:
+
+```bash ~/.config/yt-dlp/config
+# Network workarounds
+--socket-timeout 30
+--retries 10
+--sleep-requests 1
+
+# Rate limiting
+--limit-rate 1M
+
+# Custom headers
+--add-headers "User-Agent:Mozilla/5.0"
+
+# Format selection
+--format bestvideo+bestaudio/best
+```
+
+## Compatibility Options
+
+yt-dlp provides compatibility options to revert to older behaviors:
+
+```bash
+# Use youtube-dl compatible behavior
+yt-dlp --compat-options youtube-dl <url>
+
+# Specific compat options
+yt-dlp --compat-options no-live-chat,no-certifi <url>
+
+# Use legacy HTTP handler
+yt-dlp --compat-options prefer-legacy-http-handler <url>
+```
+
+## Getting Help
+
+<CardGroup cols={2}>
+  <Card title="Check the FAQ" icon="circle-question" href="https://github.com/yt-dlp/yt-dlp/wiki/FAQ">
+    Many common issues are covered in the FAQ.
+  </Card>
+  
+  <Card title="Search Issues" icon="magnifying-glass" href="https://github.com/yt-dlp/yt-dlp/issues">
+    Search existing issues to see if your problem is already reported.
+  </Card>
+  
+  <Card title="Report Bugs" icon="bug" href="https://github.com/yt-dlp/yt-dlp/issues/new/choose">
+    Create a new issue with verbose output and reproduction steps.
+  </Card>
+  
+  <Card title="Join Discord" icon="discord" href="https://discord.gg/H5MNcFW63r">
+    Get help from the community on Discord.
+  </Card>
+</CardGroup>
+
+## Related Resources
+
+- [Command-Line Options](/usage/options)
+- [Configuration](/usage/configuration)
+- [Format Selection](/usage/format-selection)
+- [Troubleshooting Wiki](https://github.com/yt-dlp/yt-dlp/wiki/FAQ)

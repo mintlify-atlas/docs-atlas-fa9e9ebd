@@ -1,0 +1,332 @@
+---
+title: 'Audio Extraction'
+description: 'Extract audio from videos and convert to various formats'
+icon: 'music'
+---
+
+## Overview
+
+yt-dlp can extract audio from videos and convert it to your preferred format. This requires ffmpeg and ffprobe to be installed on your system.
+
+## Basic Audio Extraction
+
+The simplest way to extract audio is using the `-x` flag:
+
+```bash
+yt-dlp -x "https://www.youtube.com/watch?v=BaW_jenozKc"
+```
+
+<Tip>
+By default, audio is extracted in the best available format. yt-dlp will choose the optimal format automatically.
+</Tip>
+
+## Specify Audio Format
+
+<Steps>
+  <Step title="Choose your format">
+    Select from supported formats: `mp3`, `aac`, `flac`, `m4a`, `opus`, `vorbis`, `wav`, `alac`, or `best`.
+  </Step>
+
+  <Step title="Extract with format conversion">
+    ```bash
+    yt-dlp -x --audio-format mp3 URL
+    ```
+  </Step>
+
+  <Step title="Set quality level">
+    ```bash
+    # Quality 0 (best) to 10 (worst) for VBR
+    yt-dlp -x --audio-format mp3 --audio-quality 0 URL
+    
+    # Or specify bitrate directly
+    yt-dlp -x --audio-format mp3 --audio-quality 320K URL
+    ```
+  </Step>
+</Steps>
+
+## Audio Format Examples
+
+<CodeGroup>
+```bash MP3 (Most Compatible)
+# High quality MP3
+yt-dlp -x --audio-format mp3 --audio-quality 0 URL
+
+# Standard quality MP3 (192K)
+yt-dlp -x --audio-format mp3 --audio-quality 192K URL
+
+# Using preset alias
+yt-dlp -t mp3 URL
+```
+
+```bash AAC (Apple Devices)
+# High quality AAC
+yt-dlp -x --audio-format aac --audio-quality 256K URL
+
+# Using format preference
+yt-dlp -f 'ba[acodec^=aac]' -x --audio-format aac URL
+
+# Using preset alias
+yt-dlp -t aac URL
+```
+
+```bash FLAC (Lossless)
+# Lossless audio extraction
+yt-dlp -x --audio-format flac URL
+
+# Best lossless format available
+yt-dlp -f 'ba[acodec^=flac]/ba' -x --audio-format flac URL
+```
+
+```bash Opus (Efficient)
+# High quality Opus (modern codec)
+yt-dlp -x --audio-format opus --audio-quality 128K URL
+
+# Best opus format without conversion
+yt-dlp -f 'ba[acodec^=opus]/ba' -x --audio-format opus URL
+```
+</CodeGroup>
+
+## Advanced Audio Extraction
+
+### Extract without re-encoding
+
+If the source already has the desired audio codec, avoid re-encoding to maintain quality:
+
+```bash
+# Download best audio-only format without conversion
+yt-dlp -f 'ba' URL
+
+# Prefer specific codec
+yt-dlp -f 'ba[acodec^=opus]/ba[acodec^=mp4a]/ba' URL
+```
+
+### Multiple audio quality rules
+
+Convert based on source format:
+
+```bash
+# Similar to --remux-video syntax
+yt-dlp -x --audio-format "opus>mp3/best" URL
+```
+
+This will:
+- Convert opus to mp3
+- Keep other formats in their best available quality
+
+## Audio-Only Downloads
+
+### Best audio quality
+
+<CodeGroup>
+```bash YouTube Music
+# Best quality from YouTube Music
+yt-dlp -f 'ba' "https://music.youtube.com/watch?v=..."
+```
+
+```bash SoundCloud
+# Original quality download
+yt-dlp -f 'ba' --embed-thumbnail --add-metadata URL
+```
+
+```bash Bandcamp
+# FLAC if available, otherwise best
+yt-dlp -f 'ba[acodec^=flac]/ba' URL
+```
+</CodeGroup>
+
+## Extract Audio from Playlists
+
+Download and extract audio from entire playlists:
+
+```bash
+# Extract MP3 from all videos in playlist
+yt-dlp -x --audio-format mp3 \
+  -o "%(playlist)s/%(playlist_index)s - %(title)s.%(ext)s" \
+  PLAYLIST_URL
+
+# Skip already downloaded
+yt-dlp -x --audio-format mp3 \
+  --download-archive downloaded.txt \
+  PLAYLIST_URL
+```
+
+## Embed Metadata and Artwork
+
+<Warning>
+Metadata embedding requires either `mutagen` (Python package) or `ffmpeg` to be installed.
+</Warning>
+
+<Steps>
+  <Step title="Basic metadata embedding">
+    ```bash
+    yt-dlp -x --audio-format mp3 \
+      --embed-metadata \
+      --embed-thumbnail \
+      URL
+    ```
+  </Step>
+
+  <Step title="Custom metadata">
+    ```bash
+    # Parse artist from title
+    yt-dlp -x --audio-format mp3 \
+      --parse-metadata "title:%(artist)s - %(title)s" \
+      --embed-metadata \
+      URL
+    ```
+  </Step>
+
+  <Step title="Complete music file">
+    ```bash
+    yt-dlp -x --audio-format mp3 --audio-quality 0 \
+      --embed-metadata \
+      --embed-thumbnail \
+      --parse-metadata "%(uploader|)s:%(meta_artist)s" \
+      -o "%(artist,uploader)s - %(title)s.%(ext)s" \
+      URL
+    ```
+  </Step>
+</Steps>
+
+## Audio Processing Options
+
+### Normalize audio
+
+Use ffmpeg postprocessor arguments:
+
+```bash
+yt-dlp -x --audio-format mp3 \
+  --ppa "ffmpeg:-af loudnorm" \
+  URL
+```
+
+### Split by chapters
+
+Extract each chapter as separate audio file:
+
+```bash
+yt-dlp -x --audio-format mp3 \
+  --split-chapters \
+  -o "chapter:%(title)s - %(section_number)s %(section_title)s.%(ext)s" \
+  URL
+```
+
+### Remove sponsor segments
+
+Combine with SponsorBlock to remove ads/sponsors:
+
+```bash
+yt-dlp -x --audio-format mp3 \
+  --sponsorblock-remove sponsor,selfpromo \
+  URL
+```
+
+## Preset Aliases for Audio
+
+yt-dlp includes convenient presets:
+
+<CodeGroup>
+```bash MP3 Preset
+# Equivalent to: -f 'ba[acodec^=mp3]/ba/b' -x --audio-format mp3
+yt-dlp -t mp3 URL
+```
+
+```bash AAC Preset
+# Equivalent to: -f 'ba[acodec^=aac]/ba[acodec^=mp4a.40.]/ba/b' -x --audio-format aac
+yt-dlp -t aac URL
+```
+</CodeGroup>
+
+## Organizing Audio Downloads
+
+### Music library structure
+
+```bash
+yt-dlp -x --audio-format mp3 \
+  -o "%(uploader)s/%(album,playlist)s/%(track_number)s - %(title)s.%(ext)s" \
+  --embed-metadata \
+  --embed-thumbnail \
+  PLAYLIST_URL
+```
+
+### By date
+
+```bash
+yt-dlp -x --audio-format mp3 \
+  -o "%(upload_date>%Y)s/%(upload_date>%m)s/%(title)s.%(ext)s" \
+  URL
+```
+
+## Python API Example
+
+Extract audio programmatically:
+
+```python
+import yt_dlp
+
+URLs = ['https://www.youtube.com/watch?v=BaW_jenozKc']
+
+ydl_opts = {
+    'format': 'm4a/bestaudio/best',
+    'postprocessors': [{
+        'key': 'FFmpegExtractAudio',
+        'preferredcodec': 'm4a',
+    }]
+}
+
+with yt_dlp.YoutubeDL(ydl_opts) as ydl:
+    ydl.download(URLs)
+```
+
+## Troubleshooting
+
+### ffmpeg not found
+
+<Warning>
+Audio extraction requires ffmpeg. Install it from [ffmpeg.org](https://ffmpeg.org) or use your package manager.
+</Warning>
+
+```bash
+# Check if ffmpeg is installed
+ffmpeg -version
+
+# Specify ffmpeg location if needed
+yt-dlp -x --ffmpeg-location /path/to/ffmpeg URL
+```
+
+### Quality loss during conversion
+
+```bash
+# Download best audio without re-encoding
+yt-dlp -f 'ba' URL
+
+# If conversion needed, use highest quality
+yt-dlp -x --audio-format mp3 --audio-quality 0 URL
+```
+
+### Thumbnail not embedding
+
+```bash
+# Install mutagen for better thumbnail support
+pip install mutagen
+
+# Or use AtomicParsley for MP4/M4A
+yt-dlp -x --audio-format m4a --embed-thumbnail URL
+```
+
+## Next Steps
+
+<CardGroup cols={2}>
+  <Card title="Post-Processing" icon="gears" href="/guides/post-processing">
+    Advanced post-processing options
+  </Card>
+  <Card title="Metadata Modification" icon="tags" href="/guides/metadata-modification">
+    Customize metadata in audio files
+  </Card>
+  <Card title="Playlists" icon="list" href="/guides/playlists">
+    Extract audio from entire playlists
+  </Card>
+  <Card title="Format Selection" icon="sliders" href="/core-concepts/format-selection">
+    Advanced audio format selection
+  </Card>
+</CardGroup>

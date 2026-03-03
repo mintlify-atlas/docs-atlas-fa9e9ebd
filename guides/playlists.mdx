@@ -1,0 +1,487 @@
+---
+title: 'Downloading Playlists'
+description: 'Download entire playlists, channels, and manage large collections'
+icon: 'list'
+---
+
+## Overview
+
+yt-dlp can download entire playlists, channels, user uploads, and other collections from supported sites. This guide covers best practices for handling playlists efficiently.
+
+## Basic Playlist Download
+
+Download all videos from a playlist:
+
+```bash
+# Download entire playlist
+yt-dlp PLAYLIST_URL
+
+# YouTube playlist example
+yt-dlp "https://www.youtube.com/playlist?list=PLrAXtmErZgOeiKm4sgNOknGvNjby9efdf"
+```
+
+<Tip>
+By default, yt-dlp downloads all videos in a playlist sequentially.
+</Tip>
+
+## YouTube Channels
+
+Download from YouTube channels:
+
+<CodeGroup>
+```bash All Uploads
+# Channel URL downloads all uploads
+yt-dlp "https://www.youtube.com/@ChannelName"
+yt-dlp "https://www.youtube.com/c/ChannelName"
+yt-dlp "https://www.youtube.com/channel/UC..."
+```
+
+```bash Specific Tabs
+# Videos tab
+yt-dlp "https://www.youtube.com/@ChannelName/videos"
+
+# Shorts tab
+yt-dlp "https://www.youtube.com/@ChannelName/shorts"
+
+# Live tab
+yt-dlp "https://www.youtube.com/@ChannelName/streams"
+
+# Playlists
+yt-dlp "https://www.youtube.com/@ChannelName/playlists"
+```
+
+```bash Community Features
+# Watch later
+yt-dlp ":ytwatchlater:"
+
+# Liked videos  
+yt-dlp ":ytfav:"
+
+# Subscriptions feed
+yt-dlp ":ytsubs:"
+
+# History
+yt-dlp ":ythistory:"
+
+# Recommendations
+yt-dlp ":ytrec:"
+```
+</CodeGroup>
+
+<Warning>
+Accessing private playlists (liked videos, watch later, etc.) requires authentication with `--cookies-from-browser` or `--username/--password`.
+</Warning>
+
+## Selective Download
+
+### Download specific videos from playlist
+
+<Steps>
+  <Step title="By index">
+    ```bash
+    # Download first 5 videos
+    yt-dlp -I 1:5 PLAYLIST_URL
+    
+    # Download videos 3, 5, and 7
+    yt-dlp -I 3,5,7 PLAYLIST_URL
+    
+    # Download from 10 to end
+    yt-dlp -I 10: PLAYLIST_URL
+    ```
+  </Step>
+
+  <Step title="By range with step">
+    ```bash
+    # Every other video
+    yt-dlp -I ::2 PLAYLIST_URL
+    
+    # Every 3rd video from 1 to 30
+    yt-dlp -I 1:30:3 PLAYLIST_URL
+    ```
+  </Step>
+
+  <Step title="Reverse order">
+    ```bash
+    # Download last 10 videos
+    yt-dlp -I -10: PLAYLIST_URL
+    
+    # Download in reverse order
+    yt-dlp -I ::-1 PLAYLIST_URL
+    ```
+  </Step>
+</Steps>
+
+### Filter by date
+
+```bash
+# Videos from last week
+yt-dlp --dateafter today-1week PLAYLIST_URL
+
+# Videos from 2024
+yt-dlp --dateafter 20240101 --datebefore 20241231 PLAYLIST_URL
+
+# Videos older than 1 year
+yt-dlp --datebefore today-1year PLAYLIST_URL
+```
+
+### Filter by criteria
+
+```bash
+# Videos longer than 10 minutes
+yt-dlp --match-filters "duration > 600" PLAYLIST_URL
+
+# Videos with more than 10k views
+yt-dlp --match-filters "view_count > 10000" PLAYLIST_URL
+
+# Not live streams
+yt-dlp --match-filters "!is_live" PLAYLIST_URL
+
+# Multiple conditions
+yt-dlp --match-filters "duration > 600 & view_count > 1000" PLAYLIST_URL
+```
+
+## Organizing Playlist Downloads
+
+### Create folder structure
+
+<CodeGroup>
+```bash By Playlist
+# Each playlist in its own folder
+yt-dlp -o "%(playlist)s/%(playlist_index)s - %(title)s.%(ext)s" PLAYLIST_URL
+```
+
+```bash By Uploader
+# Organize by channel/uploader
+yt-dlp -o "%(uploader)s/%(playlist)s/%(title)s.%(ext)s" PLAYLIST_URL
+```
+
+```bash By Date
+# Organize by upload date
+yt-dlp -o "%(playlist)s/%(upload_date>%Y-%m)s/%(title)s.%(ext)s" PLAYLIST_URL
+```
+
+```bash Numbered
+# Keep playlist order with zero-padded numbers
+yt-dlp -o "%(playlist)s/%(playlist_index)03d - %(title)s.%(ext)s" PLAYLIST_URL
+```
+</CodeGroup>
+
+## Download Archive
+
+Avoid re-downloading videos you already have:
+
+<Steps>
+  <Step title="Create download archive">
+    ```bash
+    # Track downloaded videos
+    yt-dlp --download-archive archive.txt PLAYLIST_URL
+    ```
+  </Step>
+
+  <Step title="Update playlist">
+    ```bash
+    # Only download new videos
+    yt-dlp --download-archive archive.txt PLAYLIST_URL
+    ```
+    
+    Videos in `archive.txt` will be skipped.
+  </Step>
+
+  <Step title="Multiple playlists">
+    ```bash
+    # Share archive across playlists
+    yt-dlp --download-archive ~/youtube-archive.txt PLAYLIST_URL_1
+    yt-dlp --download-archive ~/youtube-archive.txt PLAYLIST_URL_2
+    ```
+  </Step>
+</Steps>
+
+<Tip>
+The download archive is a simple text file containing video IDs. You can manually edit it if needed.
+</Tip>
+
+## Handling Large Playlists
+
+### Rate limiting and delays
+
+```bash
+# Be respectful to servers
+yt-dlp \
+  --sleep-interval 5 \
+  --max-sleep-interval 15 \
+  --sleep-requests 1 \
+  PLAYLIST_URL
+```
+
+### Ignore errors
+
+```bash
+# Continue on errors (deleted/private videos)
+yt-dlp --ignore-errors PLAYLIST_URL
+
+# Skip after N errors
+yt-dlp --abort-on-error --skip-playlist-after-errors 10 PLAYLIST_URL
+```
+
+### Limit downloads
+
+```bash
+# Download only first 50 videos
+yt-dlp --max-downloads 50 PLAYLIST_URL
+
+# Stop when encountering existing video
+yt-dlp --break-on-existing --download-archive archive.txt PLAYLIST_URL
+```
+
+## Playlist Processing Options
+
+### Reverse order
+
+```bash
+# Download newest first
+yt-dlp --playlist-reverse PLAYLIST_URL
+
+# Or using -I
+yt-dlp -I ::-1 PLAYLIST_URL
+```
+
+### Random order
+
+```bash
+# Download in random order
+yt-dlp --playlist-random PLAYLIST_URL
+```
+
+### Lazy playlist
+
+```bash
+# Process entries as they arrive (for large playlists)
+yt-dlp --lazy-playlist PLAYLIST_URL
+```
+
+<Tip>
+`--lazy-playlist` is useful for very large playlists as it doesn't wait to load all entries before starting downloads.
+</Tip>
+
+## Playlist Metadata
+
+### Save playlist info
+
+```bash
+# Write playlist metadata files
+yt-dlp --write-playlist-metafiles PLAYLIST_URL
+
+# This creates:
+# - playlist.info.json
+# - playlist.description
+# - Individual video .info.json files
+```
+
+### Skip playlist metadata
+
+```bash
+# Only write video metadata
+yt-dlp --no-write-playlist-metafiles PLAYLIST_URL
+```
+
+## Common Playlist Scenarios
+
+### Subscribe to a channel
+
+```bash
+# Daily cron job to download new videos
+yt-dlp \
+  --download-archive ~/Videos/channel-archive.txt \
+  --dateafter today-1week \
+  -o "~/Videos/%(uploader)s/%(upload_date)s - %(title)s.%(ext)s" \
+  "https://www.youtube.com/@ChannelName/videos"
+```
+
+### Music playlist
+
+```bash
+yt-dlp -x --audio-format mp3 \
+  --download-archive music-archive.txt \
+  --embed-metadata \
+  --embed-thumbnail \
+  --parse-metadata "%(playlist_title|)s:%(meta_album)s" \
+  --parse-metadata "%(uploader|)s:%(meta_artist)s" \
+  --parse-metadata "%(playlist_index|)s:%(meta_track)s" \
+  -o "%(artist,uploader)s/%(album,playlist)s/%(track)s - %(title)s.%(ext)s" \
+  PLAYLIST_URL
+```
+
+### Educational course
+
+```bash
+yt-dlp \
+  -o "%(playlist)s/%(chapter_number|)s%(playlist_index)s - %(title)s.%(ext)s" \
+  --write-subs \
+  --embed-subs \
+  --embed-metadata \
+  PLAYLIST_URL
+```
+
+### Podcast archive
+
+```bash
+yt-dlp -x --audio-format mp3 \
+  --download-archive podcast-archive.txt \
+  --embed-metadata \
+  --embed-thumbnail \
+  -o "Podcasts/%(uploader)s/%(upload_date)s - %(title)s.%(ext)s" \
+  CHANNEL_URL
+```
+
+## Flat Playlist Mode
+
+Extract playlist information without downloading:
+
+```bash
+# List all video URLs without downloading
+yt-dlp --flat-playlist --print url PLAYLIST_URL
+
+# Get video IDs
+yt-dlp --flat-playlist --print id PLAYLIST_URL
+
+# Get full metadata without downloading
+yt-dlp --flat-playlist --dump-json PLAYLIST_URL
+```
+
+<Tip>
+Use `--flat-playlist` to quickly check playlist contents or create custom processing workflows.
+</Tip>
+
+## Concatenating Playlists
+
+Merge playlist videos into single file:
+
+```bash
+# Concatenate multi-part videos (default)
+yt-dlp --concat-playlist multi_video PLAYLIST_URL
+
+# Always concatenate all videos
+yt-dlp --concat-playlist always \
+  -o "pl_video:%(playlist)s.%(ext)s" \
+  PLAYLIST_URL
+
+# Never concatenate
+yt-dlp --concat-playlist never PLAYLIST_URL
+```
+
+<Warning>
+All videos must have the same codecs and number of streams to be concatenated.
+</Warning>
+
+## Batch Downloading Multiple Playlists
+
+Create a file with multiple playlist URLs:
+
+```txt playlists.txt
+# Music playlists
+https://www.youtube.com/playlist?list=PLxxxxxxx
+https://www.youtube.com/playlist?list=PLyyyyyyy
+
+# Educational
+https://www.youtube.com/playlist?list=PLzzzzzzz
+```
+
+Download all:
+
+```bash
+yt-dlp -a playlists.txt \
+  --download-archive archive.txt \
+  -o "%(playlist)s/%(title)s.%(ext)s"
+```
+
+## Performance Optimization
+
+### Parallel fragment downloads
+
+```bash
+# Download fragments in parallel (faster for HLS/DASH)
+yt-dlp -N 4 PLAYLIST_URL
+```
+
+### External downloader
+
+```bash
+# Use aria2c for faster downloads
+yt-dlp --downloader aria2c \
+  --downloader-args "aria2c:-x 16 -s 16 -k 1M" \
+  PLAYLIST_URL
+```
+
+## Monitoring Progress
+
+Track download progress:
+
+```bash
+# Show progress bar
+yt-dlp --progress PLAYLIST_URL
+
+# Console title (terminal window title)
+yt-dlp --console-title PLAYLIST_URL
+
+# Custom progress template
+yt-dlp --progress-template "download:%(info.title)s %(progress.percent)s" PLAYLIST_URL
+```
+
+## Troubleshooting
+
+### Playlist not loading completely
+
+```bash
+# Use lazy playlist for large playlists
+yt-dlp --lazy-playlist PLAYLIST_URL
+
+# Increase timeout
+yt-dlp --socket-timeout 30 PLAYLIST_URL
+```
+
+### Private or deleted videos
+
+```bash
+# Skip unavailable videos
+yt-dlp --ignore-errors PLAYLIST_URL
+
+# See which videos are unavailable (YouTube)
+yt-dlp --flat-playlist --print "%(title)s [%(id)s] %(availability)s" PLAYLIST_URL
+```
+
+### Geo-restricted content
+
+```bash
+# Use proxy for restricted videos
+yt-dlp --proxy socks5://127.0.0.1:1080 PLAYLIST_URL
+
+# Fake location
+yt-dlp --xff "US" PLAYLIST_URL
+```
+
+### Authentication required
+
+```bash
+# Use browser cookies
+yt-dlp --cookies-from-browser firefox PLAYLIST_URL
+
+# Or login credentials
+yt-dlp --username USERNAME --password PASSWORD PLAYLIST_URL
+```
+
+## Next Steps
+
+<CardGroup cols={2}>
+  <Card title="Downloading Videos" icon="download" href="/guides/downloading-videos">
+    Basic video download workflows
+  </Card>
+  <Card title="Audio Extraction" icon="music" href="/guides/audio-extraction">
+    Extract audio from playlist videos
+  </Card>
+  <Card title="Post-Processing" icon="gears" href="/guides/post-processing">
+    Process downloaded videos
+  </Card>
+  <Card title="Output Templates" icon="file" href="/core-concepts/output-templates">
+    Customize file naming and organization
+  </Card>
+</CardGroup>

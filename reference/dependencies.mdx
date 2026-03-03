@@ -1,0 +1,211 @@
+---
+title: Dependencies
+description: Required and optional dependencies for yt-dlp functionality
+icon: puzzle-piece
+---
+
+yt-dlp has minimal required dependencies, but several optional dependencies unlock additional features and capabilities.
+
+## Python Requirements
+
+<Info>
+**Python versions 3.10+** (CPython) and **3.11+** (PyPy) are supported. Other versions and implementations may or may not work correctly.
+</Info>
+
+If you're using the standalone binary releases, Python is already included and you don't need to install it separately.
+
+## Strongly Recommended
+
+While technically optional, these dependencies are highly recommended for full functionality:
+
+### FFmpeg and FFprobe
+
+[**ffmpeg**](https://www.ffmpeg.org) and **ffprobe** are essential for most common use cases.
+
+**Required for:**
+- Merging separate video and audio files
+- Converting between formats
+- Embedding thumbnails and metadata
+- Post-processing tasks (cutting, trimming, etc.)
+- Downloading HLS/DASH streams
+
+**License:** [Depends on the build](https://www.ffmpeg.org/legal.html)
+
+<Warning>
+There are bugs in ffmpeg that cause various issues when used with yt-dlp. We provide [custom builds with patches](https://github.com/yt-dlp/FFmpeg-Builds#ffmpeg-static-auto-builds) that fix these issues.
+
+**Download patched builds:** [yt-dlp/FFmpeg-Builds](https://github.com/yt-dlp/FFmpeg-Builds)
+</Warning>
+
+<Note>
+**Important:** You need the ffmpeg *binary*, **NOT** the [Python package of the same name](https://pypi.org/project/ffmpeg).
+</Note>
+
+#### Installing FFmpeg
+
+```bash
+# Check if ffmpeg is installed
+ffmpeg -version
+
+# Linux (Debian/Ubuntu)
+sudo apt install ffmpeg
+
+# macOS (Homebrew)
+brew install ffmpeg
+
+# Windows
+# Download from https://github.com/yt-dlp/FFmpeg-Builds/releases
+```
+
+### yt-dlp-ejs
+
+[**yt-dlp-ejs**](https://github.com/yt-dlp/ejs) - Required for full YouTube support.
+
+**License:** [Unlicense](https://github.com/yt-dlp/ejs/blob/main/LICENSE), bundles MIT and ISC components
+
+**Requires a JavaScript runtime:**
+- [**deno**](https://deno.land) (recommended)
+- [**node.js**](https://nodejs.org)
+- [**bun**](https://bun.sh)
+- [**QuickJS**](https://bellard.org/quickjs/)
+
+<Note>
+Standalone binaries typically include yt-dlp-ejs. For pip installations, see the [EJS wiki](https://github.com/yt-dlp/yt-dlp/wiki/EJS) for setup instructions.
+</Note>
+
+## Networking Dependencies
+
+These enhance network functionality and protocol support:
+
+### Core Networking
+
+| Package | Purpose | License |
+|---------|---------|----------|
+| [**certifi**](https://github.com/certifi/python-certifi)* | Mozilla's root certificate bundle | [MPLv2](https://github.com/certifi/python-certifi/blob/master/LICENSE) |
+| [**brotli**](https://github.com/google/brotli)* or [**brotlicffi**](https://github.com/python-hyper/brotlicffi) | Brotli content encoding support | MIT |
+| [**websockets**](https://github.com/aaugustin/websockets)* | Downloading over websocket | [BSD-3-Clause](https://github.com/aaugustin/websockets/blob/main/LICENSE) |
+| [**requests**](https://github.com/psf/requests)* | HTTP library for HTTPS proxy and persistent connections | [Apache-2.0](https://github.com/psf/requests/blob/main/LICENSE) |
+
+### Browser Impersonation
+
+These enable impersonating browser requests to bypass TLS fingerprinting:
+
+**curl_cffi** (recommended)
+
+[**curl_cffi**](https://github.com/lexiforest/curl_cffi) - Python binding for curl-impersonate. Provides impersonation for Chrome, Edge, and Safari.
+
+**License:** [MIT](https://github.com/lexiforest/curl_cffi/blob/main/LICENSE)
+
+```bash
+# Install with curl-cffi extra
+pip install "yt-dlp[default,curl-cffi]"
+```
+
+<Info>
+curl_cffi is included in most official builds except:
+- `yt-dlp` (Unix zipimport binary)
+- `yt-dlp_x86` (Windows 32-bit)
+- `yt-dlp_musllinux_aarch64`
+</Info>
+
+## Metadata Dependencies
+
+For embedding thumbnails and writing metadata:
+
+| Package | Purpose | License |
+|---------|---------|----------|
+| [**mutagen**](https://github.com/quodlibet/mutagen)* | Embedding thumbnails in various formats | [GPLv2+](https://github.com/quodlibet/mutagen/blob/master/COPYING) |
+| [**AtomicParsley**](https://github.com/wez/atomicparsley) | Embedding thumbnails in MP4/M4A when mutagen/ffmpeg cannot | [GPLv2+](https://github.com/wez/atomicparsley/blob/master/COPYING) |
+| [**xattr**](https://github.com/xattr/xattr) | Writing xattr metadata on **Mac** | [MIT](https://github.com/xattr/xattr/blob/master/LICENSE.txt) |
+| [**pyxattr**](https://github.com/iustin/pyxattr) | Writing xattr metadata on **BSD** | [LGPL2.1](https://github.com/iustin/pyxattr/blob/master/COPYING) |
+| [**setfattr**](http://savannah.nongnu.org/projects/attr) | Writing xattr metadata (system tool) | [GPLv2+](http://git.savannah.nongnu.org/cgit/attr.git/tree/doc/COPYING) |
+
+### Example: Embedding Thumbnails
+
+```bash
+yt-dlp --embed-thumbnail URL
+
+# For MP4 files without mutagen, AtomicParsley is used
+# Install on Ubuntu/Debian:
+sudo apt install atomicparsley
+```
+
+## Miscellaneous Dependencies
+
+| Package | Purpose | License |
+|---------|---------|----------|
+| [**pycryptodomex**](https://github.com/Legrandin/pycryptodome)* | Decrypting AES-128 HLS streams | [BSD-2-Clause](https://github.com/Legrandin/pycryptodome/blob/master/LICENSE.rst) |
+| [**secretstorage**](https://github.com/mitya57/secretstorage)* | Accessing Gnome keyring for browser cookies on Linux | [BSD-3-Clause](https://github.com/mitya57/secretstorage/blob/master/LICENSE) |
+| Any external downloader | For use with `--downloader` | Varies |
+
+## Deprecated Dependencies
+
+These are no longer recommended but still supported:
+
+<Warning>
+**These dependencies are deprecated.** ffmpeg can be used instead for most use cases.
+</Warning>
+
+| Package | Purpose | Alternative |
+|---------|---------|-------------|
+| [**rtmpdump**](http://rtmpdump.mplayerhq.hu) | Downloading RTMP streams | Use ffmpeg: `--downloader ffmpeg` |
+| [**mplayer**](http://mplayerhq.hu/design7/info.html) or [**mpv**](https://mpv.io) | Downloading RSTP/MMS streams | Use ffmpeg: `--downloader ffmpeg` |
+| [**phantomjs**](https://github.com/ariya/phantomjs) | Running JavaScript (some extractors) | No longer needed for YouTube |
+
+## Checking Available Dependencies
+
+To see which dependencies are currently available:
+
+```bash
+yt-dlp --verbose URL
+```
+
+The verbose output displays all detected dependencies at the top.
+
+<Info>
+If you attempt a task requiring a missing dependency, yt-dlp will warn you with a specific message about what's needed.
+</Info>
+
+## Installing Dependencies
+
+### Via pip (Python installation)
+
+```bash
+# Install with recommended dependencies
+pip install "yt-dlp[default]"
+
+# Install with all extras
+pip install "yt-dlp[default,curl-cffi]"
+```
+
+### Standalone Binaries
+
+**Packages marked with \*** are included in the standalone release binaries.
+
+If you're using a standalone binary, you already have:
+- Python interpreter
+- certifi
+- brotli/brotlicffi
+- websockets
+- requests
+- mutagen
+- pycryptodomex
+- secretstorage (Linux builds)
+- curl_cffi (most builds)
+
+You only need to install external tools like:
+- ffmpeg/ffprobe
+- AtomicParsley
+- External downloaders (aria2c, wget, etc.)
+
+## Licensing Considerations
+
+To use or redistribute yt-dlp with dependencies, you must agree to their respective licensing terms.
+
+<Note>
+The standalone PyInstaller-bundled executables include GPLv3+ licensed code (from dependencies like mutagen), so the combined work is licensed under [GPLv3+](https://www.gnu.org/licenses/gpl-3.0.html).
+
+The source code, source tarball, and PyPI packages contain only [Unlicense](https://github.com/yt-dlp/yt-dlp/blob/master/LICENSE) code.
+</Note>
+
+For complete licensing details, see [THIRD_PARTY_LICENSES.txt](https://github.com/yt-dlp/yt-dlp/blob/master/THIRD_PARTY_LICENSES.txt) in the repository.

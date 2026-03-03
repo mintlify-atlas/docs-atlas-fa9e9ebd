@@ -1,97 +1,178 @@
 ---
-title: "Introduction"
-description: "Welcome to the new home for your documentation"
+title: Introduction to yt-dlp
+description: A feature-rich command-line audio/video downloader with support for thousands of sites
 ---
 
-## Setting up
+<img
+  className="block"
+  src="https://raw.githubusercontent.com/yt-dlp/yt-dlp/master/.github/banner.svg"
+  alt="yt-dlp Banner"
+/>
 
-Get your documentation site up and running in minutes.
+## Welcome to yt-dlp
 
-<Card
-  title="Start here"
-  icon="rocket"
-  href="/quickstart"
-  horizontal
->
-  Follow our three step quickstart guide.
-</Card>
+yt-dlp is a feature-rich command-line audio/video downloader with support for [thousands of sites](https://github.com/yt-dlp/yt-dlp/blob/master/supportedsites.md). It's a fork of youtube-dl based on the now inactive youtube-dlc, with additional features and fixes.
 
-## Make it yours
-
-Design a docs site that looks great and empowers your users.
-
-<Columns cols={2}>
+<CardGroup cols={2}>
   <Card
-    title="Edit locally"
-    icon="pen-to-square"
-    href="/development"
+    title="Install yt-dlp"
+    icon="download"
+    href="/installation"
   >
-    Edit your docs locally and preview them in real time.
+    Get started by installing yt-dlp on your platform
   </Card>
   <Card
-    title="Customize your site"
-    icon="palette"
-    href="/essentials/settings"
+    title="Quick start guide"
+    icon="rocket"
+    href="/quickstart"
   >
-    Customize the design and colors of your site to match your brand.
-  </Card>
-    <Card
-    title="Set up navigation"
-    icon="map"
-    href="/essentials/navigation"
-  >
-    Organize your docs to help users find what they need and succeed with your product.
+    Download your first video in minutes
   </Card>
   <Card
-    title="API documentation"
-    icon="terminal"
-    href="/api-reference/introduction"
+    title="Format selection"
+    icon="filter"
+    href="/core-concepts/format-selection"
   >
-    Auto-generate API documentation from OpenAPI specifications.
-  </Card>
-</Columns>
-
-## Create beautiful pages
-
-Everything you need to create world-class documentation.
-
-<Columns cols={2}>
-  <Card
-    title="Write with MDX"
-    icon="pen-fancy"
-    href="/essentials/markdown"
-  >
-    Use MDX to style your docs pages.
+    Learn advanced format selection and quality control
   </Card>
   <Card
-    title="Code samples"
+    title="Python API"
     icon="code"
-    href="/essentials/code"
+    href="/api/overview"
   >
-    Add sample code to demonstrate how to use your product.
+    Embed yt-dlp in your Python applications
+  </Card>
+</CardGroup>
+
+## Key features
+
+<AccordionGroup>
+  <Accordion title="Download from thousands of sites" icon="globe">
+    yt-dlp supports video downloads from thousands of websites including YouTube, Vimeo, Twitter, Facebook, and many more. The extractor system is continuously updated with fixes and new site support.
+    
+    Key capabilities:
+    - YouTube (including clips, stories, music, channels, and playlists)
+    - Social media platforms (Twitter, Facebook, Instagram, TikTok)
+    - Video hosting platforms (Vimeo, Dailymotion, Twitch)
+    - Educational sites (Coursera, Khan Academy, Udemy)
+    - News and media outlets
+  </Accordion>
+
+  <Accordion title="Advanced format selection" icon="sliders">
+    Choose exactly the quality and format you want with powerful sorting and filtering options.
+    
+    Features:
+    - Intelligent format sorting by resolution, codec, and bitrate
+    - Custom format filters using `-S` option
+    - Merge best video and audio automatically
+    - Support for HDR, 4K, 8K, and high frame rate content
+    - Download specific format combinations
+  </Accordion>
+
+  <Accordion title="Audio extraction and conversion" icon="music">
+    Extract audio from videos and convert to your preferred format.
+    
+    Capabilities:
+    - Extract audio in original quality
+    - Convert to MP3, M4A, FLAC, Opus, Vorbis, WAV
+    - Automatic bitrate selection or custom bitrate
+    - Embed metadata and thumbnails
+    - Split by chapters for albums and podcasts
+  </Accordion>
+
+  <Accordion title="SponsorBlock integration" icon="forward">
+    Automatically mark or remove sponsor segments from YouTube videos using the SponsorBlock API.
+    
+    Options:
+    - Skip sponsor segments, intros, outros, self-promotion
+    - Remove segments entirely during download
+    - Mark chapters for manual skipping
+    - Community-driven segment database
+  </Accordion>
+
+  <Accordion title="Flexible output templates" icon="file">
+    Control exactly how and where files are saved with powerful templating.
+    
+    Features:
+    - Date-time formatting and numeric offsets
+    - Metadata-based file naming
+    - Separate paths for different file types
+    - Playlist-aware numbering and organization
+    - Regular expression replacement
+  </Accordion>
+
+  <Accordion title="Post-processing with FFmpeg" icon="wand-magic-sparkles">
+    Extensive post-processing capabilities using FFmpeg.
+    
+    Options:
+    - Format conversion and remuxing
+    - Embed subtitles, thumbnails, and metadata
+    - Split or concatenate videos
+    - Apply audio/video filters
+    - Extract chapters and segments
+  </Accordion>
+
+  <Accordion title="Plugin system" icon="puzzle-piece">
+    Extend yt-dlp with custom extractors and post-processors.
+    
+    Capabilities:
+    - Load extractors from external files
+    - Custom post-processing plugins
+    - Replace or extend built-in extractors
+    - Install via pip or configuration directories
+  </Accordion>
+
+  <Accordion title="Playlist and channel support" icon="list">
+    Download entire playlists, channels, and feeds with ease.
+    
+    Features:
+    - YouTube playlists and channels (including shorts and live)
+    - Playlist item filtering and ranges
+    - Archive file to avoid re-downloading
+    - Random order or reverse download
+    - Download from start for livestreams
+  </Accordion>
+</AccordionGroup>
+
+## Why yt-dlp?
+
+yt-dlp improves upon youtube-dl with:
+
+- **Better performance**: Multi-threaded fragment downloads for faster speeds
+- **More features**: SponsorBlock integration, cookies from browser, download time ranges
+- **Active development**: Regular updates with new extractors and bug fixes
+- **YouTube reliability**: Fix for throttling issues and enhanced YouTube support
+- **Flexible updates**: Stable, nightly, and master release channels
+
+## What's next?
+
+<CardGroup cols={2}>
+  <Card
+    title="Installation"
+    icon="download"
+    href="/installation"
+  >
+    Install yt-dlp using pip, binaries, or package managers
   </Card>
   <Card
-    title="Images"
-    icon="image"
-    href="/essentials/images"
+    title="Quick start"
+    icon="play"
+    href="/quickstart"
   >
-    Display images and other media.
+    Download your first video and learn basic commands
   </Card>
   <Card
-    title="Reusable snippets"
-    icon="recycle"
-    href="/essentials/reusable-snippets"
+    title="Configuration"
+    icon="gear"
+    href="/core-concepts/configuration"
   >
-    Write once and reuse across your docs.
+    Set up configuration files for your preferences
   </Card>
-</Columns>
-
-## Need inspiration?
-
-<Card
-  title="See complete examples"
-  icon="stars"
-  href="https://mintlify.com/customers"
->
-  Browse our showcase of exceptional documentation sites.
-</Card>
+  <Card
+    title="Browse guides"
+    icon="book"
+    href="/guides/downloading-videos"
+  >
+    Explore detailed guides for common tasks
+  </Card>
+</CardGroup>

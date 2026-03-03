@@ -1,0 +1,442 @@
+---
+title: Installation
+description: Install yt-dlp on Windows, macOS, Linux, or with Python pip
+---
+
+## Overview
+
+yt-dlp can be installed using binaries, pip, or third-party package managers. Choose the method that works best for your platform and use case.
+
+<Note>
+  Python versions 3.10+ (CPython) and 3.11+ (PyPy) are supported. For the best experience, we recommend using Python 3.10 or later.
+</Note>
+
+## Install with pip (recommended)
+
+The easiest way to install yt-dlp is using pip. This method works on all platforms and keeps the tool updated.
+
+<Steps>
+  <Step title="Install or upgrade yt-dlp">
+    <CodeGroup>
+    ```bash Standard installation
+    python -m pip install -U yt-dlp
+    ```
+
+    ```bash With default dependencies
+    python -m pip install -U "yt-dlp[default]"
+    ```
+
+    ```bash With curl-cffi for impersonation
+    python -m pip install -U "yt-dlp[default,curl-cffi]"
+    ```
+    </CodeGroup>
+
+    <Note>
+      On some systems, you may need to use `python3` or `py` instead of `python`.
+    </Note>
+  </Step>
+
+  <Step title="Verify installation">
+    Check that yt-dlp is installed correctly:
+
+    ```bash
+    yt-dlp --version
+    ```
+
+    You should see the version number printed to the console.
+  </Step>
+</Steps>
+
+## Platform-specific binaries
+
+Standalone executables are available for Windows, macOS, and Linux. These don't require Python to be installed.
+
+<Tabs>
+  <Tab title="Windows">
+    ### Windows (x64)
+
+    Download the standalone executable for Windows:
+
+    <Steps>
+      <Step title="Download the executable">
+        Download [yt-dlp.exe](https://github.com/yt-dlp/yt-dlp/releases/latest/download/yt-dlp.exe) (Windows 8+ x64)
+
+        Alternative downloads:
+        - [yt-dlp_x86.exe](https://github.com/yt-dlp/yt-dlp/releases/latest/download/yt-dlp_x86.exe) - 32-bit version
+        - [yt-dlp_arm64.exe](https://github.com/yt-dlp/yt-dlp/releases/latest/download/yt-dlp_arm64.exe) - Windows 10+ ARM64
+      </Step>
+
+      <Step title="Place in your PATH (optional)">
+        For easier access, place the executable in a directory that's in your PATH, such as `C:\Windows\System32` or add a custom directory to your PATH.
+      </Step>
+
+      <Step title="Run from command prompt">
+        Open Command Prompt or PowerShell and run:
+
+        ```powershell
+        yt-dlp --version
+        ```
+      </Step>
+    </Steps>
+
+    <Warning>
+      The PyInstaller-bundled executables include GPLv3+ licensed code. The combined work is licensed under GPLv3+.
+    </Warning>
+  </Tab>
+
+  <Tab title="macOS">
+    ### macOS (Universal)
+
+    Download the standalone executable for macOS:
+
+    <Steps>
+      <Step title="Download the executable">
+        Download [yt-dlp_macos](https://github.com/yt-dlp/yt-dlp/releases/latest/download/yt-dlp_macos) (macOS 10.15+, Universal binary)
+      </Step>
+
+      <Step title="Make executable and move to PATH">
+        ```bash
+        chmod +x yt-dlp_macos
+        sudo mv yt-dlp_macos /usr/local/bin/yt-dlp
+        ```
+      </Step>
+
+      <Step title="Verify installation">
+        ```bash
+        yt-dlp --version
+        ```
+      </Step>
+    </Steps>
+
+    ### Install with Homebrew
+
+    If you use Homebrew, you can install yt-dlp with:
+
+    ```bash
+    brew install yt-dlp
+    ```
+  </Tab>
+
+  <Tab title="Linux/BSD">
+    ### Linux/BSD
+
+    Download the platform-independent zipimport binary:
+
+    <Steps>
+      <Step title="Download the binary">
+        ```bash
+        wget https://github.com/yt-dlp/yt-dlp/releases/latest/download/yt-dlp
+        ```
+
+        <Note>
+          This requires Python 3.10+ to be installed on your system.
+        </Note>
+      </Step>
+
+      <Step title="Make executable and move to PATH">
+        ```bash
+        chmod +x yt-dlp
+        sudo mv yt-dlp /usr/local/bin/
+        ```
+      </Step>
+
+      <Step title="Verify installation">
+        ```bash
+        yt-dlp --version
+        ```
+      </Step>
+    </Steps>
+
+    ### Standalone Linux binaries
+
+    For systems without Python or with older Python versions:
+
+    <CodeGroup>
+    ```bash x86_64 (glibc)
+    wget https://github.com/yt-dlp/yt-dlp/releases/latest/download/yt-dlp_linux
+    chmod +x yt-dlp_linux
+    sudo mv yt-dlp_linux /usr/local/bin/yt-dlp
+    ```
+
+    ```bash ARM64 (glibc)
+    wget https://github.com/yt-dlp/yt-dlp/releases/latest/download/yt-dlp_linux_aarch64
+    chmod +x yt-dlp_linux_aarch64
+    sudo mv yt-dlp_linux_aarch64 /usr/local/bin/yt-dlp
+    ```
+
+    ```bash x86_64 (musl)
+    wget https://github.com/yt-dlp/yt-dlp/releases/latest/download/yt-dlp_musllinux
+    chmod +x yt-dlp_musllinux
+    sudo mv yt-dlp_musllinux /usr/local/bin/yt-dlp
+    ```
+    </CodeGroup>
+
+    <Note>
+      Standalone Linux binaries require glibc 2.17+ or musl 1.2+ depending on the variant.
+    </Note>
+  </Tab>
+</Tabs>
+
+## Package managers
+
+yt-dlp is available in several third-party package managers:
+
+<AccordionGroup>
+  <Accordion title="Linux distributions">
+    <CodeGroup>
+    ```bash Arch Linux
+    sudo pacman -S yt-dlp
+    ```
+
+    ```bash Debian/Ubuntu (from official repos)
+    sudo apt install yt-dlp
+    ```
+
+    ```bash Fedora
+    sudo dnf install yt-dlp
+    ```
+
+    ```bash Gentoo
+    sudo emerge net-misc/yt-dlp
+    ```
+    </CodeGroup>
+
+    <Note>
+      Distribution packages may be outdated. For the latest version, use pip or binaries.
+    </Note>
+  </Accordion>
+
+  <Accordion title="macOS package managers">
+    <CodeGroup>
+    ```bash Homebrew
+    brew install yt-dlp
+    ```
+
+    ```bash MacPorts
+    sudo port install yt-dlp
+    ```
+    </CodeGroup>
+  </Accordion>
+
+  <Accordion title="Windows package managers">
+    <CodeGroup>
+    ```powershell Chocolatey
+    choco install yt-dlp
+    ```
+
+    ```powershell Scoop
+    scoop install yt-dlp
+    ```
+
+    ```powershell winget
+    winget install yt-dlp
+    ```
+    </CodeGroup>
+  </Accordion>
+
+  <Accordion title="Other package managers">
+    <CodeGroup>
+    ```bash Nix
+    nix-env -i yt-dlp
+    ```
+
+    ```bash pkgsrc (NetBSD)
+    pkgin install yt-dlp
+    ```
+    </CodeGroup>
+  </Accordion>
+</AccordionGroup>
+
+<Warning>
+  Third-party package managers may not have the latest version. For critical bug fixes or new features, consider using pip or downloading the latest binary.
+</Warning>
+
+## Updating yt-dlp
+
+yt-dlp has a built-in update mechanism for binaries and supports multiple release channels.
+
+### Update release binaries
+
+If you installed using the release binaries:
+
+```bash
+yt-dlp -U
+```
+
+This updates to the latest version of your current channel (stable by default).
+
+### Update pip installations
+
+If you installed with pip, re-run the installation command:
+
+```bash
+python -m pip install -U yt-dlp
+```
+
+For nightly releases:
+
+```bash
+python -m pip install -U --pre "yt-dlp[default]"
+```
+
+### Release channels
+
+yt-dlp has three release channels:
+
+<Tabs>
+  <Tab title="Stable">
+    **Stable** (default) - Tested releases with many changes validated by nightly users.
+
+    ```bash
+    # Binaries update to stable by default
+    yt-dlp -U
+    ```
+  </Tab>
+
+  <Tab title="Nightly">
+    **Nightly** (recommended) - Daily builds with latest patches. Recommended for regular users.
+
+    <CodeGroup>
+    ```bash Update binary to nightly
+    yt-dlp --update-to nightly
+    ```
+
+    ```bash Install nightly with pip
+    python -m pip install -U --pre "yt-dlp[default]"
+    ```
+    </CodeGroup>
+
+    Nightly releases are available from [yt-dlp/yt-dlp-nightly-builds](https://github.com/yt-dlp/yt-dlp-nightly-builds/releases).
+  </Tab>
+
+  <Tab title="Master">
+    **Master** - Built after each push to master. Latest fixes but may have regressions.
+
+    ```bash
+    yt-dlp --update-to master
+    ```
+
+    Master releases are available from [yt-dlp/yt-dlp-master-builds](https://github.com/yt-dlp/yt-dlp-master-builds/releases).
+  </Tab>
+</Tabs>
+
+### Switch channels or downgrade
+
+You can switch channels or downgrade to specific versions:
+
+<CodeGroup>
+```bash Switch to nightly channel
+yt-dlp --update-to nightly
+```
+
+```bash Downgrade to specific version
+yt-dlp --update-to stable@2023.07.06
+```
+
+```bash Upgrade to specific tag
+yt-dlp --update-to 2023.10.07
+```
+</CodeGroup>
+
+<Warning>
+  When running a yt-dlp version older than 90 days, you'll see a warning suggesting to update. Use `--no-update` to suppress this warning.
+</Warning>
+
+## Dependencies
+
+While most dependencies are optional, some are highly recommended for full functionality.
+
+### Strongly recommended
+
+<AccordionGroup>
+  <Accordion title="ffmpeg and ffprobe" icon="video">
+    Required for merging video and audio files, format conversion, and post-processing.
+
+    **Installation:**
+
+    <CodeGroup>
+    ```bash Linux (Debian/Ubuntu)
+    sudo apt install ffmpeg
+    ```
+
+    ```bash macOS (Homebrew)
+    brew install ffmpeg
+    ```
+
+    ```powershell Windows (Chocolatey)
+    choco install ffmpeg
+    ```
+    </CodeGroup>
+
+    yt-dlp also provides [custom FFmpeg builds](https://github.com/yt-dlp/FFmpeg-Builds) with patches for known issues.
+
+    <Warning>
+      You need the ffmpeg **binary**, not the [Python package of the same name](https://pypi.org/project/ffmpeg).
+    </Warning>
+  </Accordion>
+
+  <Accordion title="yt-dlp-ejs and JavaScript runtime" icon="js">
+    Required for full YouTube support. Install a JavaScript runtime:
+
+    - [deno](https://deno.land) (recommended)
+    - [node.js](https://nodejs.org)
+    - [bun](https://bun.sh)
+    - [QuickJS](https://bellard.org/quickjs/)
+
+    Then install yt-dlp-ejs:
+
+    ```bash
+    # yt-dlp-ejs is bundled in release binaries
+    # For pip installations, it's installed with default extras
+    python -m pip install -U "yt-dlp[default]"
+    ```
+  </Accordion>
+</AccordionGroup>
+
+### Optional dependencies
+
+For specific features, you may want to install:
+
+- **certifi** - Mozilla's root certificate bundle
+- **brotli** or **brotlicffi** - Brotli compression support
+- **websockets** - WebSocket downloads
+- **requests** - HTTPS proxy and persistent connections
+- **curl_cffi** - Browser impersonation (included in most binaries)
+- **mutagen** - Embed thumbnails in audio files
+- **AtomicParsley** - Embed thumbnails in MP4/M4A
+- **pycryptodomex** - Decrypt AES-128 HLS streams
+
+Most optional dependencies are included in the `[default]` extras:
+
+```bash
+python -m pip install -U "yt-dlp[default]"
+```
+
+## Verify dependencies
+
+To see all currently available dependencies:
+
+```bash
+yt-dlp --verbose
+```
+
+This displays loaded dependencies at the top of the output.
+
+## Next steps
+
+<CardGroup cols={2}>
+  <Card
+    title="Quick start"
+    icon="rocket"
+    href="/quickstart"
+  >
+    Download your first video with yt-dlp
+  </Card>
+  <Card
+    title="Configuration"
+    icon="gear"
+    href="/core-concepts/configuration"
+  >
+    Set up configuration files for default options
+  </Card>
+</CardGroup>

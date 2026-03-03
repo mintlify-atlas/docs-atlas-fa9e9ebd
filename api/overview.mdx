@@ -1,0 +1,145 @@
+---
+title: Python API Overview
+description: Learn how to use yt-dlp as a Python library to download and extract video information programmatically
+---
+
+yt-dlp can be used as a Python library to integrate video downloading capabilities into your applications. This allows you to programmatically download videos, extract metadata, and process media content.
+
+## Installation
+
+Install yt-dlp via pip:
+
+```bash
+pip install yt-dlp
+```
+
+For development or specific features, you may need additional dependencies:
+
+```bash
+pip install yt-dlp[default]  # Recommended dependencies
+```
+
+## Basic Usage
+
+The main entry point for using yt-dlp as a library is the `YoutubeDL` class:
+
+```python
+import yt_dlp
+
+# Basic download
+ydl_opts = {}
+with yt_dlp.YoutubeDL(ydl_opts) as ydl:
+    ydl.download(['https://www.youtube.com/watch?v=dQw4w9WgXcQ'])
+```
+
+## Extract Information Without Downloading
+
+You can extract video metadata without downloading the actual video file:
+
+```python
+import yt_dlp
+
+ydl_opts = {
+    'skip_download': True,
+}
+
+with yt_dlp.YoutubeDL(ydl_opts) as ydl:
+    info = ydl.extract_info('https://www.youtube.com/watch?v=dQw4w9WgXcQ', download=False)
+    print(f"Title: {info['title']}")
+    print(f"Duration: {info['duration']} seconds")
+    print(f"Uploader: {info['uploader']}")
+```
+
+## Common Options
+
+The `YoutubeDL` class accepts a dictionary of options. Here are some commonly used options:
+
+<ParamField path="format" type="string">
+  Video format code (e.g., 'best', 'bestvideo+bestaudio', '720p')
+</ParamField>
+
+<ParamField path="outtmpl" type="string | dict">
+  Output filename template. Can be a string or dictionary with keys like 'default'
+</ParamField>
+
+<ParamField path="quiet" type="boolean" default="false">
+  Do not print messages to stdout
+</ParamField>
+
+<ParamField path="no_warnings" type="boolean" default="false">
+  Do not print out anything for warnings
+</ParamField>
+
+<ParamField path="ignoreerrors" type="boolean | string" default="false">
+  Continue on download errors. Can be 'only_download' to ignore only download errors
+</ParamField>
+
+<ParamField path="extract_flat" type="boolean | string" default="false">
+  Do not resolve URLs or process playlist items. Can be 'in_playlist', 'discard', or 'discard_in_playlist'
+</ParamField>
+
+## Simple Example
+
+```python
+import yt_dlp
+
+def download_video(url, output_path='downloads'):
+    ydl_opts = {
+        'format': 'bestvideo+bestaudio/best',
+        'outtmpl': f'{output_path}/%(title)s.%(ext)s',
+        'quiet': False,
+    }
+    
+    with yt_dlp.YoutubeDL(ydl_opts) as ydl:
+        ydl.download([url])
+
+if __name__ == '__main__':
+    download_video('https://www.youtube.com/watch?v=dQw4w9WgXcQ')
+```
+
+## Information Dictionary
+
+When you extract information, yt-dlp returns a dictionary containing video metadata. Common fields include:
+
+- `id`: Video identifier
+- `title`: Video title
+- `description`: Video description
+- `uploader`: Video uploader name
+- `duration`: Video duration in seconds
+- `view_count`: Number of views
+- `like_count`: Number of likes
+- `formats`: List of available formats
+- `thumbnails`: List of thumbnail dictionaries
+- `subtitles`: Dictionary of available subtitles
+
+## Error Handling
+
+```python
+import yt_dlp
+from yt_dlp.utils import DownloadError, ExtractorError
+
+try:
+    with yt_dlp.YoutubeDL({'quiet': True}) as ydl:
+        ydl.download(['https://example.com/video'])
+except DownloadError as e:
+    print(f"Download failed: {e}")
+except ExtractorError as e:
+    print(f"Extraction failed: {e}")
+```
+
+## Next Steps
+
+<CardGroup cols={2}>
+  <Card title="YoutubeDL Class" icon="code" href="/api/youtubedl-class">
+    Deep dive into the main YoutubeDL class and its methods
+  </Card>
+  <Card title="Extractors" icon="download" href="/api/extractors">
+    Learn about the extractor system and how to work with different sites
+  </Card>
+  <Card title="Post-Processors" icon="gear" href="/api/post-processors">
+    Process downloaded media with post-processors
+  </Card>
+  <Card title="Examples" icon="lightbulb" href="/api/examples">
+    Browse practical code examples for common use cases
+  </Card>
+</CardGroup>

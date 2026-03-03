@@ -1,0 +1,73 @@
+---
+title: Subtitle Options
+description: Download, configure, and manage subtitles and closed captions
+---
+
+## Subtitle Download
+
+<ParamField path="--write-subs" type="flag">
+  Write subtitle file
+</ParamField>
+
+<ParamField path="--no-write-subs" type="flag" default="true">
+  Do not write subtitle file
+</ParamField>
+
+<ParamField path="--write-auto-subs" type="flag">
+  Write automatically generated subtitle file
+  
+  Alias: `--write-automatic-subs`
+</ParamField>
+
+<ParamField path="--no-write-auto-subs" type="flag" default="true">
+  Do not write auto-generated subtitles
+  
+  Alias: `--no-write-automatic-subs`
+</ParamField>
+
+## Subtitle Listing
+
+<ParamField path="--list-subs" type="flag">
+  List available subtitles of each video
+  
+  Simulate unless `--no-simulate` is used
+  
+  **Example:**
+  ```bash
+  yt-dlp --list-subs URL
+  ```
+</ParamField>
+
+## Subtitle Format
+
+<ParamField path="--sub-format" type="string">
+  Subtitle format; accepts formats preference separated by "/"
+  
+  **Example:**
+  ```bash
+  yt-dlp --sub-format srt URL
+  yt-dlp --sub-format "ass/srt/best" URL
+  ```
+</ParamField>
+
+## Language Selection
+
+<ParamField path="--sub-langs" type="string">
+  Languages of the subtitles to download (can be regex) or "all" separated by commas
+  
+  You can prefix the language code with a "-" to exclude it from the requested languages.
+  
+  Use `--list-subs` for a list of available language tags
+  
+  **Example:**
+  ```bash
+  yt-dlp --sub-langs "en.*,ja" URL
+  # Downloads English (en.*) and Japanese subtitles
+  
+  yt-dlp --sub-langs all,-live_chat URL
+  # Downloads all subtitles except live chat
+  
+  yt-dlp --write-subs --sub-langs "en" URL
+  # Downloads only English subtitles
+  ```
+</ParamField>

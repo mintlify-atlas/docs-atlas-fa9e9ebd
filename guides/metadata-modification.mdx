@@ -1,0 +1,414 @@
+---
+title: 'Metadata Modification'
+description: 'Parse, modify, and embed metadata in downloaded media files'
+icon: 'tags'
+---
+
+## Overview
+
+yt-dlp can extract, parse, modify, and embed metadata in your downloaded files. This is useful for organizing media libraries, fixing incorrect information, or adding custom metadata fields.
+
+## Understanding Metadata Flow
+
+Metadata modification happens in this order:
+
+1. **Extraction**: Metadata obtained from the website
+2. **Parsing**: Custom parsing with `--parse-metadata`
+3. **Replacement**: Text replacement with `--replace-in-metadata`
+4. **Format selection**: Uses modified metadata
+5. **Post-processing**: Embedding metadata in files
+6. **Final output**: File with embedded metadata
+
+<Warning>
+Metadata modification happens before format selection and post-processing. Some fields may be added or changed during these steps, potentially overriding your changes.
+</Warning>
+
+## Parsing Metadata
+
+### Basic syntax
+
+The `--parse-metadata FROM:TO` option extracts data from one field and creates or modifies another:
+
+```bash
+# Basic syntax
+yt-dlp --parse-metadata "FROM:TO" URL
+```
+
+### Extract from title
+
+<CodeGroup>
+```bash Artist - Title Format
+# Parse "Artist - Title" from title field
+yt-dlp --parse-metadata "title:%(artist)s - %(title)s" URL
+```
+
+```bash Series Format
+# Parse series and episode from title
+yt-dlp --parse-metadata "title:%(series)s - S%(season_number)02dE%(episode_number)02d" URL
+```
+
+```bash Date Extraction
+# Extract date from title
+yt-dlp --parse-metadata "title:.*(?P<upload_date>[0-9]{8}).*" URL
+```
+</CodeGroup>
+
+### Extract from description
+
+<Steps>
+  <Step title="Simple pattern matching">
+    ```bash
+    # Extract artist from description
+    yt-dlp --parse-metadata "description:Artist - (?P<artist>.+)" URL
+    ```
+  </Step>
+
+  <Step title="Multi-line matching">
+    ```bash
+    # Match across multiple lines with (?s) flag
+    yt-dlp --parse-metadata "description:(?s)(?P<meta_comment>.+)" URL
+    ```
+  </Step>
+
+  <Step title="Extract URLs">
+    ```bash
+    # Extract additional URLs from description
+    yt-dlp --parse-metadata "description:(?P<additional_urls>https?://www\.vimeo\.com/\d+)" URL
+    ```
+  </Step>
+</Steps>
+
+## Modifying File Metadata
+
+Use the `meta_` prefix to set metadata that will be embedded in the file:
+
+### Common metadata fields
+
+<CodeGroup>
+```bash Set Artist
+# Prioritize uploader as artist field
+yt-dlp --parse-metadata "%(uploader|)s:%(meta_artist)s" \
+  --embed-metadata URL
+```
+
+```bash Set Album
+# Set album from playlist title
+yt-dlp --parse-metadata "%(playlist_title|)s:%(meta_album)s" \
+  --embed-metadata URL
+```
+
+```bash Custom Title
+# Create formatted title
+yt-dlp --parse-metadata "%(series)s S%(season_number)02dE%(episode_number)02d:%(title)s" URL
+```
+
+```bash Set Comment
+# Use description as comment instead of URL
+yt-dlp --parse-metadata "description:(?s)(?P<meta_comment>.+)" \
+  --embed-metadata URL
+```
+</CodeGroup>
+
+## Default Metadata Mappings
+
+yt-dlp automatically maps these fields to file metadata:
+
+| Metadata Field | Source Fields |
+|:--------------|:--------------|
+| `title` | `track` or `title` |
+| `date` | `upload_date` |
+| `description`, `synopsis` | `description` |
+| `purl`, `comment` | `webpage_url` |
+| `track` | `track_number` |
+| `artist` | `artist`, `artists`, `creator`, `creators`, `uploader`, `uploader_id` |
+| `composer` | `composer` or `composers` |
+| `genre` | `genre`, `genres`, `categories`, `tags` |
+| `album` | `album` or `series` |
+| `album_artist` | `album_artist` or `album_artists` |
+| `disc` | `disc_number` |
+| `show` | `series` |
+| `season_number` | `season_number` |
+| `episode_id` | `episode` or `episode_id` |
+| `episode_sort` | `episode_number` |
+| `language` | format's `language` |
+
+<Tip>
+You can override any of these defaults using `--parse-metadata` with the `meta_` prefix.
+</Tip>
+
+## Replacing Text in Metadata
+
+Use `--replace-in-metadata` to find and replace text:
+
+<CodeGroup>
+```bash Replace Characters
+# Replace spaces and underscores with dashes
+yt-dlp --replace-in-metadata "title,uploader" "[ _]" "-" URL
+```
+
+```bash Remove Text
+# Remove "Official Music Video" from titles
+yt-dlp --replace-in-metadata "title" " ?\[?Official Music Video\]?" "" URL
+```
+
+```bash Clean Filenames
+# Remove special characters
+yt-dlp --replace-in-metadata "title" "[^a-zA-Z0-9 ]" "" URL
+```
+
+```bash Format Dates
+# Format date consistently
+yt-dlp --replace-in-metadata "upload_date" "(\d{4})(\d{2})(\d{2})" "\1-\2-\3" URL
+```
+</CodeGroup>
+
+## Removing Metadata Fields
+
+Set fields to empty to remove them:
+
+<CodeGroup>
+```bash Remove Synopsis
+# Don't set synopsis in metadata
+yt-dlp --parse-metadata ":(?P<meta_synopsis>)" URL
+```
+
+```bash Remove from InfoJSON
+# Remove formats field from info.json
+yt-dlp --parse-metadata "video::(?P<formats>)" \
+  --write-info-json URL
+```
+</CodeGroup>
+
+## Advanced Metadata Examples
+
+### Music downloads
+
+```bash
+# Complete music metadata from playlist
+yt-dlp -x --audio-format mp3 \
+  --parse-metadata "%(playlist_title|)s:%(meta_album)s" \
+  --parse-metadata "%(uploader|)s:%(meta_artist)s" \
+  --parse-metadata "%(playlist_index|)s:%(meta_track)s" \
+  --parse-metadata "title:%(artist)s - %(title)s" \
+  --embed-metadata \
+  --embed-thumbnail \
+  -o "%(artist)s/%(album)s/%(track)s - %(title)s.%(ext)s" \
+  PLAYLIST_URL
+```
+
+### TV series episodes
+
+```bash
+# Parse and format TV series metadata
+yt-dlp \
+  --parse-metadata "title:%(series)s - (?P<season_number>\d+)x(?P<episode_number>\d+)" \
+  --parse-metadata "%(series)s S%(season_number)02dE%(episode_number)02d:%(title)s" \
+  -o "%(series)s/Season %(season_number)s/%(title)s.%(ext)s" \
+  URL
+```
+
+### Podcast episodes
+
+```bash
+# Set podcast metadata
+yt-dlp -x --audio-format mp3 \
+  --parse-metadata "%(uploader|)s:%(meta_album)s" \
+  --parse-metadata "%(upload_date>%Y-%m-%d)s:%(meta_date)s" \
+  --parse-metadata "%(description|)s:%(meta_comment)s" \
+  --embed-metadata \
+  --embed-thumbnail \
+  -o "Podcasts/%(uploader)s/%(upload_date)s - %(title)s.%(ext)s" \
+  URL
+```
+
+### Clean YouTube titles
+
+```bash
+# Remove common YouTube title decorations
+yt-dlp \
+  --replace-in-metadata "title" " ?\[?Official Music Video\]?" "" \
+  --replace-in-metadata "title" " ?\(?Official Audio\)?" "" \
+  --replace-in-metadata "title" " ?\[?HD\]?" "" \
+  --replace-in-metadata "title" " ?\[?4K\]?" "" \
+  --parse-metadata "title:%(artist)s - %(title)s" \
+  URL
+```
+
+## Metadata for Different Streams
+
+Set metadata for individual streams using `meta<n>_` prefix:
+
+```bash
+# Set language for stream 1
+yt-dlp --parse-metadata ":%(meta1_language)s" URL
+
+# Set different metadata for audio stream
+yt-dlp --parse-metadata "en:%(meta1_language)s" URL
+```
+
+## Copy Metadata Between Fields
+
+<CodeGroup>
+```bash Copy Single Field
+# Copy episode to title
+yt-dlp --parse-metadata "episode:title" URL
+```
+
+```bash Combine Fields
+# Combine multiple fields
+yt-dlp --parse-metadata "%(uploader)s - %(title)s:%(meta_title)s" URL
+```
+
+```bash Conditional Copy
+# Use uploader as artist if artist field is empty
+yt-dlp --parse-metadata "%(artist,uploader)s:%(meta_artist)s" URL
+```
+</CodeGroup>
+
+## Timing and Execution
+
+Control when metadata parsing happens:
+
+```bash
+# Pre-process (default): before format selection
+yt-dlp --parse-metadata "pre_process:title:%(meta_title)s" URL
+
+# Video: after format selection
+yt-dlp --parse-metadata "video:title:%(meta_title)s" URL
+
+# Post-process: after download
+yt-dlp --parse-metadata "post_process:title:%(meta_title)s" URL
+```
+
+## Embedding Metadata
+
+After parsing and modifying metadata, embed it in the file:
+
+<Steps>
+  <Step title="Enable metadata embedding">
+    ```bash
+    yt-dlp --embed-metadata URL
+    ```
+    
+    This also embeds chapters and infojson (in MKV) unless disabled.
+  </Step>
+
+  <Step title="Control what gets embedded">
+    ```bash
+    # Embed metadata and thumbnail
+    yt-dlp --embed-metadata --embed-thumbnail URL
+    
+    # Include subtitles
+    yt-dlp --embed-metadata --embed-subs URL
+    
+    # Don't embed chapters
+    yt-dlp --embed-metadata --no-embed-chapters URL
+    ```
+  </Step>
+
+  <Step title="Verify embedded metadata">
+    ```bash
+    # Check metadata with ffprobe
+    ffprobe -hide_banner video.mp4
+    ```
+  </Step>
+</Steps>
+
+## Regular Expression Tips
+
+### Common patterns
+
+```bash
+# Named capture groups
+(?P<name>pattern)
+
+# Non-greedy match (minimal)
+.+?
+
+# Multi-line mode
+(?s)pattern
+
+# Case-insensitive
+(?i)pattern
+
+# Word boundary
+\b
+
+# Digits
+\d+
+
+# Optional whitespace
+\s*
+```
+
+### Example patterns
+
+<CodeGroup>
+```bash Extract Artist
+"title:(?P<artist>[^-]+) - (?P<title>.+)"
+```
+
+```bash Extract Date
+"description:Released: (?P<release_date>\d{4}-\d{2}-\d{2})"
+```
+
+```bash Extract Episode
+"title:S(?P<season_number>\d+)E(?P<episode_number>\d+)"
+```
+</CodeGroup>
+
+## Troubleshooting
+
+### Metadata not embedding
+
+```bash
+# Ensure embed-metadata is enabled
+yt-dlp --embed-metadata --verbose URL
+
+# Check if format supports metadata
+# MP4, M4A, MKV support most metadata
+yt-dlp --merge-output-format mp4 --embed-metadata URL
+
+# Install mutagen for better support
+pip install mutagen
+```
+
+### Regex not matching
+
+```bash
+# Test with --print to see field contents
+yt-dlp --print "title:%(title)s" URL
+yt-dlp --print "description:%(description)s" URL
+
+# Use verbose to see parsed metadata
+yt-dlp --parse-metadata "title:pattern" --verbose URL
+```
+
+### Wrong metadata in file
+
+<Tip>
+Metadata might be overwritten during post-processing. Use `meta_` prefix to ensure your values are used.
+</Tip>
+
+```bash
+# Force specific values with meta_ prefix
+yt-dlp --parse-metadata "MY VALUE:%(meta_artist)s" \
+  --embed-metadata URL
+```
+
+## Next Steps
+
+<CardGroup cols={2}>
+  <Card title="Output Templates" icon="file" href="/core-concepts/output-templates">
+    Use metadata in filename templates
+  </Card>
+  <Card title="Post-Processing" icon="gears" href="/guides/post-processing">
+    Learn about post-processing options
+  </Card>
+  <Card title="Audio Extraction" icon="music" href="/guides/audio-extraction">
+    Embed metadata in audio files
+  </Card>
+  <Card title="Format Selection" icon="sliders" href="/core-concepts/format-selection">
+    Use metadata in format selection
+  </Card>
+</CardGroup>

@@ -1,0 +1,636 @@
+---
+title: Code Examples
+description: Practical Python code examples for common yt-dlp use cases
+---
+
+This page provides real-world examples of using yt-dlp as a Python library for various tasks.
+
+## Basic Examples
+
+### Simple Video Download
+
+```python
+import yt_dlp
+
+def download_video(url):
+    ydl_opts = {
+        'format': 'best',
+        'outtmpl': '%(title)s.%(ext)s',
+    }
+    
+    with yt_dlp.YoutubeDL(ydl_opts) as ydl:
+        ydl.download([url])
+
+download_video('https://www.youtube.com/watch?v=dQw4w9WgXcQ')
+```
+
+### Extract Metadata Only
+
+```python
+import yt_dlp
+import json
+
+def get_video_info(url):
+    ydl_opts = {
+        'quiet': True,
+        'skip_download': True,
+    }
+    
+    with yt_dlp.YoutubeDL(ydl_opts) as ydl:
+        info = ydl.extract_info(url, download=False)
+        
+        # Clean up the info dict (remove internal keys)
+        info = ydl.sanitize_info(info)
+        
+        return {
+            'title': info.get('title'),
+            'uploader': info.get('uploader'),
+            'duration': info.get('duration'),
+            'view_count': info.get('view_count'),
+            'upload_date': info.get('upload_date'),
+            'description': info.get('description'),
+        }
+
+video_info = get_video_info('https://www.youtube.com/watch?v=dQw4w9WgXcQ')
+print(json.dumps(video_info, indent=2))
+```
+
+### Download with Progress Bar
+
+```python
+import yt_dlp
+
+def progress_hook(d):
+    if d['status'] == 'downloading':
+        percent = d.get('_percent_str', 'N/A')
+        speed = d.get('_speed_str', 'N/A')
+        eta = d.get('_eta_str', 'N/A')
+        print(f"\rProgress: {percent} | Speed: {speed} | ETA: {eta}", end='')
+    elif d['status'] == 'finished':
+        print(f"\nDownload complete: {d['filename']}")
+
+ydl_opts = {
+    'format': 'best',
+    'progress_hooks': [progress_hook],
+}
+
+with yt_dlp.YoutubeDL(ydl_opts) as ydl:
+    ydl.download(['https://www.youtube.com/watch?v=dQw4w9WgXcQ'])
+```
+
+## Audio Extraction
+
+### Download MP3 Audio
+
+```python
+import yt_dlp
+
+def download_audio_mp3(url, output_dir='audio'):
+    ydl_opts = {
+        'format': 'bestaudio/best',
+        'postprocessors': [{
+            'key': 'FFmpegExtractAudio',
+            'preferredcodec': 'mp3',
+            'preferredquality': '192',
+        }],
+        'outtmpl': f'{output_dir}/%(title)s.%(ext)s',
+        'quiet': False,
+    }
+    
+    with yt_dlp.YoutubeDL(ydl_opts) as ydl:
+        ydl.download([url])
+
+download_audio_mp3('https://www.youtube.com/watch?v=dQw4w9WgXcQ')
+```
+
+### Extract Audio with Metadata
+
+```python
+import yt_dlp
+
+def download_audio_with_metadata(url):
+    ydl_opts = {
+        'format': 'bestaudio/best',
+        'postprocessors': [
+            {
+                'key': 'FFmpegExtractAudio',
+                'preferredcodec': 'mp3',
+                'preferredquality': '192',
+            },
+            {
+                'key': 'FFmpegMetadata',
+                'add_metadata': True,
+            },
+            {
+                'key': 'EmbedThumbnail',
+            },
+        ],
+        'writethumbnail': True,
+        'outtmpl': '%(title)s.%(ext)s',
+    }
+    
+    with yt_dlp.YoutubeDL(ydl_opts) as ydl:
+        ydl.download([url])
+
+download_audio_with_metadata('https://www.youtube.com/watch?v=dQw4w9WgXcQ')
+```
+
+## Playlist Handling
+
+### Download Entire Playlist
+
+```python
+import yt_dlp
+
+def download_playlist(playlist_url):
+    ydl_opts = {
+        'format': 'best',
+        'outtmpl': 'playlists/%(playlist)s/%(playlist_index)s - %(title)s.%(ext)s',
+        'ignoreerrors': True,  # Continue on errors
+    }
+    
+    with yt_dlp.YoutubeDL(ydl_opts) as ydl:
+        ydl.download([playlist_url])
+
+download_playlist('https://www.youtube.com/playlist?list=PLrAXtmErZgOeiKm4sgNOknGvNjby9efdf')
+```
+
+### Get Playlist Information
+
+```python
+import yt_dlp
+
+def get_playlist_info(playlist_url):
+    ydl_opts = {
+        'quiet': True,
+        'extract_flat': True,  # Don't download, just get info
+    }
+    
+    with yt_dlp.YoutubeDL(ydl_opts) as ydl:
+        playlist_info = ydl.extract_info(playlist_url, download=False)
+        
+        print(f"Playlist: {playlist_info['title']}")
+        print(f"Total videos: {len(playlist_info['entries'])}\n")
+        
+        for idx, video in enumerate(playlist_info['entries'], 1):
+            print(f"{idx}. {video.get('title', 'N/A')} ({video.get('duration', 0)} seconds)")
+
+get_playlist_info('https://www.youtube.com/playlist?list=PLrAXtmErZgOeiKm4sgNOknGvNjby9efdf')
+```
+
+### Download Playlist Items Selectively
+
+```python
+import yt_dlp
+
+def download_playlist_range(playlist_url, start=1, end=5):
+    ydl_opts = {
+        'format': 'best',
+        'playlist_items': f'{start}-{end}',  # Download items 1 to 5
+        'outtmpl': '%(playlist_index)s - %(title)s.%(ext)s',
+    }
+    
+    with yt_dlp.YoutubeDL(ydl_opts) as ydl:
+        ydl.download([playlist_url])
+
+download_playlist_range(
+    'https://www.youtube.com/playlist?list=PLrAXtmErZgOeiKm4sgNOknGvNjby9efdf',
+    start=1,
+    end=5
+)
+```
+
+## Format Selection
+
+### Download Specific Quality
+
+```python
+import yt_dlp
+
+def download_1080p(url):
+    ydl_opts = {
+        'format': 'bestvideo[height<=1080]+bestaudio/best[height<=1080]',
+        'outtmpl': '%(title)s.%(ext)s',
+    }
+    
+    with yt_dlp.YoutubeDL(ydl_opts) as ydl:
+        ydl.download([url])
+
+def download_720p(url):
+    ydl_opts = {
+        'format': 'bestvideo[height<=720]+bestaudio/best[height<=720]',
+        'outtmpl': '%(title)s.%(ext)s',
+    }
+    
+    with yt_dlp.YoutubeDL(ydl_opts) as ydl:
+        ydl.download([url])
+
+download_1080p('https://www.youtube.com/watch?v=dQw4w9WgXcQ')
+```
+
+### List Available Formats
+
+```python
+import yt_dlp
+
+def list_formats(url):
+    ydl_opts = {
+        'quiet': True,
+        'skip_download': True,
+    }
+    
+    with yt_dlp.YoutubeDL(ydl_opts) as ydl:
+        info = ydl.extract_info(url, download=False)
+        
+        print(f"Available formats for: {info['title']}\n")
+        print(f"{'ID':<12} {'Extension':<10} {'Resolution':<15} {'Size'}")
+        print("-" * 60)
+        
+        for fmt in info['formats']:
+            format_id = fmt.get('format_id', 'N/A')
+            ext = fmt.get('ext', 'N/A')
+            resolution = f"{fmt.get('width', '?')}x{fmt.get('height', '?')}"
+            filesize = fmt.get('filesize')
+            size_str = f"{filesize / 1024 / 1024:.1f} MB" if filesize else "N/A"
+            
+            print(f"{format_id:<12} {ext:<10} {resolution:<15} {size_str}")
+
+list_formats('https://www.youtube.com/watch?v=dQw4w9WgXcQ')
+```
+
+## Subtitles and Captions
+
+### Download with Subtitles
+
+```python
+import yt_dlp
+
+def download_with_subtitles(url, languages=['en']):
+    ydl_opts = {
+        'format': 'best',
+        'writesubtitles': True,
+        'subtitleslangs': languages,
+        'subtitlesformat': 'srt',
+        'outtmpl': '%(title)s.%(ext)s',
+    }
+    
+    with yt_dlp.YoutubeDL(ydl_opts) as ydl:
+        ydl.download([url])
+
+download_with_subtitles('https://www.youtube.com/watch?v=dQw4w9WgXcQ', languages=['en', 'es'])
+```
+
+### Download All Available Subtitles
+
+```python
+import yt_dlp
+
+def download_all_subtitles(url):
+    ydl_opts = {
+        'skip_download': True,
+        'writesubtitles': True,
+        'writeautomaticsub': True,  # Also get auto-generated subs
+        'subtitleslangs': ['all'],
+        'outtmpl': '%(title)s.%(ext)s',
+    }
+    
+    with yt_dlp.YoutubeDL(ydl_opts) as ydl:
+        ydl.download([url])
+
+download_all_subtitles('https://www.youtube.com/watch?v=dQw4w9WgXcQ')
+```
+
+### Embed Subtitles in Video
+
+```python
+import yt_dlp
+
+def download_with_embedded_subs(url):
+    ydl_opts = {
+        'format': 'bestvideo+bestaudio',
+        'writesubtitles': True,
+        'subtitleslangs': ['en'],
+        'postprocessors': [{
+            'key': 'FFmpegEmbedSubtitle',
+        }],
+        'outtmpl': '%(title)s.%(ext)s',
+    }
+    
+    with yt_dlp.YoutubeDL(ydl_opts) as ydl:
+        ydl.download([url])
+
+download_with_embedded_subs('https://www.youtube.com/watch?v=dQw4w9WgXcQ')
+```
+
+## Advanced Use Cases
+
+### Download Archive (Skip Downloaded)
+
+```python
+import yt_dlp
+
+def download_with_archive(url, archive_file='downloaded.txt'):
+    ydl_opts = {
+        'format': 'best',
+        'download_archive': archive_file,  # Track downloaded videos
+        'outtmpl': '%(title)s.%(ext)s',
+    }
+    
+    with yt_dlp.YoutubeDL(ydl_opts) as ydl:
+        ydl.download([url])
+
+# First run: downloads the video and adds to archive
+download_with_archive('https://www.youtube.com/watch?v=dQw4w9WgXcQ')
+
+# Second run: skips because it's in archive
+download_with_archive('https://www.youtube.com/watch?v=dQw4w9WgXcQ')
+```
+
+### Custom Filename Template
+
+```python
+import yt_dlp
+
+def download_with_custom_name(url):
+    ydl_opts = {
+        'format': 'best',
+        'outtmpl': '%(uploader)s/%(upload_date)s - %(title)s [%(id)s].%(ext)s',
+    }
+    
+    with yt_dlp.YoutubeDL(ydl_opts) as ydl:
+        ydl.download([url])
+
+download_with_custom_name('https://www.youtube.com/watch?v=dQw4w9WgXcQ')
+# Output: RickAstleyVEVO/20091024 - Rick Astley - Never Gonna Give You Up [dQw4w9WgXcQ].mp4
+```
+
+### Download with Cookies
+
+```python
+import yt_dlp
+
+def download_with_cookies(url, cookies_file='cookies.txt'):
+    ydl_opts = {
+        'format': 'best',
+        'cookiefile': cookies_file,  # Path to Netscape format cookies
+        'outtmpl': '%(title)s.%(ext)s',
+    }
+    
+    with yt_dlp.YoutubeDL(ydl_opts) as ydl:
+        ydl.download([url])
+
+# Or use cookies from browser
+def download_with_browser_cookies(url):
+    ydl_opts = {
+        'format': 'best',
+        'cookiesfrombrowser': ('chrome',),  # chrome, firefox, safari, etc.
+        'outtmpl': '%(title)s.%(ext)s',
+    }
+    
+    with yt_dlp.YoutubeDL(ydl_opts) as ydl:
+        ydl.download([url])
+```
+
+### Rate Limiting
+
+```python
+import yt_dlp
+
+def download_with_rate_limit(url, rate_limit='1M'):
+    ydl_opts = {
+        'format': 'best',
+        'ratelimit': 1024 * 1024,  # 1 MB/s in bytes
+        'outtmpl': '%(title)s.%(ext)s',
+    }
+    
+    with yt_dlp.YoutubeDL(ydl_opts) as ydl:
+        ydl.download([url])
+
+download_with_rate_limit('https://www.youtube.com/watch?v=dQw4w9WgXcQ')
+```
+
+### Error Handling and Retries
+
+```python
+import yt_dlp
+from yt_dlp.utils import DownloadError, ExtractorError
+
+def robust_download(url, max_attempts=3):
+    ydl_opts = {
+        'format': 'best',
+        'retries': 10,  # Retry failed fragments
+        'fragment_retries': 10,
+        'extractor_retries': 3,
+        'outtmpl': '%(title)s.%(ext)s',
+    }
+    
+    for attempt in range(max_attempts):
+        try:
+            with yt_dlp.YoutubeDL(ydl_opts) as ydl:
+                ydl.download([url])
+            print("Download successful!")
+            return True
+        except DownloadError as e:
+            print(f"Download error (attempt {attempt + 1}/{max_attempts}): {e}")
+        except ExtractorError as e:
+            print(f"Extraction error (attempt {attempt + 1}/{max_attempts}): {e}")
+        except Exception as e:
+            print(f"Unexpected error: {e}")
+            break
+    
+    print("Download failed after all attempts")
+    return False
+
+robust_download('https://www.youtube.com/watch?v=dQw4w9WgXcQ')
+```
+
+### Batch Download from File
+
+```python
+import yt_dlp
+
+def batch_download(url_file='urls.txt'):
+    # Read URLs from file
+    with open(url_file, 'r') as f:
+        urls = [line.strip() for line in f if line.strip()]
+    
+    ydl_opts = {
+        'format': 'best',
+        'outtmpl': '%(title)s.%(ext)s',
+        'ignoreerrors': True,  # Continue on errors
+    }
+    
+    with yt_dlp.YoutubeDL(ydl_opts) as ydl:
+        ydl.download(urls)
+
+# urls.txt content:
+# https://www.youtube.com/watch?v=dQw4w9WgXcQ
+# https://www.youtube.com/watch?v=9bZkp7q19f0
+# ...
+
+batch_download('urls.txt')
+```
+
+### Match Filter (Skip Videos)
+
+```python
+import yt_dlp
+
+def download_videos_filter(playlist_url):
+    def match_filter(info, *, incomplete):
+        # Skip videos longer than 10 minutes
+        duration = info.get('duration')
+        if duration and duration > 600:
+            return 'Video too long'
+        
+        # Skip videos with less than 1000 views
+        view_count = info.get('view_count')
+        if view_count and view_count < 1000:
+            return 'Not enough views'
+        
+        # Accept video
+        return None
+    
+    ydl_opts = {
+        'format': 'best',
+        'match_filter': match_filter,
+        'outtmpl': '%(title)s.%(ext)s',
+    }
+    
+    with yt_dlp.YoutubeDL(ydl_opts) as ydl:
+        ydl.download([playlist_url])
+
+download_videos_filter('https://www.youtube.com/playlist?list=PLrAXtmErZgOeiKm4sgNOknGvNjby9efdf')
+```
+
+### Thumbnail Download
+
+```python
+import yt_dlp
+
+def download_thumbnail_only(url):
+    ydl_opts = {
+        'skip_download': True,
+        'writethumbnail': True,
+        'outtmpl': '%(title)s.%(ext)s',
+    }
+    
+    with yt_dlp.YoutubeDL(ydl_opts) as ydl:
+        ydl.download([url])
+
+def download_all_thumbnails(url):
+    ydl_opts = {
+        'skip_download': True,
+        'write_all_thumbnails': True,
+        'outtmpl': '%(title)s.%(ext)s',
+    }
+    
+    with yt_dlp.YoutubeDL(ydl_opts) as ydl:
+        ydl.download([url])
+
+download_thumbnail_only('https://www.youtube.com/watch?v=dQw4w9WgXcQ')
+```
+
+## Integration Examples
+
+### Flask Web API
+
+```python
+from flask import Flask, request, jsonify
+import yt_dlp
+import threading
+
+app = Flask(__name__)
+
+@app.route('/download', methods=['POST'])
+def download():
+    data = request.json
+    url = data.get('url')
+    
+    if not url:
+        return jsonify({'error': 'No URL provided'}), 400
+    
+    def download_video():
+        ydl_opts = {
+            'format': 'best',
+            'outtmpl': 'downloads/%(title)s.%(ext)s',
+        }
+        
+        try:
+            with yt_dlp.YoutubeDL(ydl_opts) as ydl:
+                ydl.download([url])
+        except Exception as e:
+            print(f"Download failed: {e}")
+    
+    # Download in background
+    thread = threading.Thread(target=download_video)
+    thread.start()
+    
+    return jsonify({'message': 'Download started', 'url': url})
+
+@app.route('/info', methods=['GET'])
+def get_info():
+    url = request.args.get('url')
+    
+    if not url:
+        return jsonify({'error': 'No URL provided'}), 400
+    
+    ydl_opts = {'quiet': True}
+    
+    try:
+        with yt_dlp.YoutubeDL(ydl_opts) as ydl:
+            info = ydl.extract_info(url, download=False)
+            
+            return jsonify({
+                'title': info.get('title'),
+                'duration': info.get('duration'),
+                'uploader': info.get('uploader'),
+                'view_count': info.get('view_count'),
+            })
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+if __name__ == '__main__':
+    app.run(debug=True)
+```
+
+### Command-Line Tool
+
+```python
+import yt_dlp
+import argparse
+
+def main():
+    parser = argparse.ArgumentParser(description='Download videos with yt-dlp')
+    parser.add_argument('url', help='Video URL to download')
+    parser.add_argument('-f', '--format', default='best', help='Video format')
+    parser.add_argument('-o', '--output', default='%(title)s.%(ext)s', help='Output template')
+    parser.add_argument('--audio-only', action='store_true', help='Extract audio only')
+    parser.add_argument('--quality', default='192', help='Audio quality (for audio-only)')
+    
+    args = parser.parse_args()
+    
+    ydl_opts = {
+        'format': args.format,
+        'outtmpl': args.output,
+    }
+    
+    if args.audio_only:
+        ydl_opts['postprocessors'] = [{
+            'key': 'FFmpegExtractAudio',
+            'preferredcodec': 'mp3',
+            'preferredquality': args.quality,
+        }]
+    
+    with yt_dlp.YoutubeDL(ydl_opts) as ydl:
+        ydl.download([args.url])
+
+if __name__ == '__main__':
+    main()
+```
+
+Usage:
+```bash
+python downloader.py https://www.youtube.com/watch?v=dQw4w9WgXcQ
+python downloader.py --audio-only --quality 320 https://www.youtube.com/watch?v=dQw4w9WgXcQ
+```

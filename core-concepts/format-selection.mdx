@@ -1,0 +1,362 @@
+---
+title: Format Selection
+description: Master yt-dlp's powerful format selection system to download exactly the quality and format you need
+---
+
+By default, yt-dlp tries to download the best available quality. This is generally equivalent to using `-f bestvideo*+bestaudio/best`. However, you have granular control over which formats to download.
+
+## Basic Format Selection
+
+The general syntax for format selection is `-f FORMAT` (or `--format FORMAT`) where `FORMAT` is a selector expression.
+
+### Simple Format Codes
+
+The simplest case is requesting a specific format by its code:
+
+```bash
+# Download format with code 22
+yt-dlp -f 22 https://www.youtube.com/watch?v=VIDEO_ID
+
+# List all available formats for a video
+yt-dlp -F https://www.youtube.com/watch?v=VIDEO_ID
+```
+
+<Note>
+Format codes are extractor-specific and may vary between different video sites.
+</Note>
+
+### File Extension Selection
+
+You can download by file extension to get the best quality format of that type:
+
+```bash
+# Download best quality WebM format
+yt-dlp -f webm https://example.com/video
+
+# Download best quality MP4 format
+yt-dlp -f mp4 https://example.com/video
+```
+
+Supported extensions: `3gp`, `aac`, `flv`, `m4a`, `mp3`, `mp4`, `ogg`, `wav`, `webm`
+
+## Special Format Selectors
+
+yt-dlp provides special names to select particular formats:
+
+<Tabs>
+  <Tab title="Best Quality">
+    - `b`, `best` - Best quality format with both video and audio
+    - `bv`, `bestvideo` - Best video-only format
+    - `ba`, `bestaudio` - Best audio-only format
+    - `b*`, `best*` - Best format that contains either video or audio
+    - `bv*`, `bestvideo*` - Best format that contains video (may include audio)
+    - `ba*`, `bestaudio*` - Best format that contains audio (may include video)
+
+    ```bash
+    # Download and merge best video + best audio
+    yt-dlp -f "bestvideo+bestaudio" URL
+
+    # Download best combined format
+    yt-dlp -f "best" URL
+    ```
+  </Tab>
+  <Tab title="Worst Quality">
+    - `w`, `worst` - Worst quality format with both video and audio
+    - `wv`, `worstvideo` - Worst video-only format
+    - `wa`, `worstaudio` - Worst audio-only format
+    - `w*`, `worst*` - Worst format that contains either video or audio
+
+    <Info>
+    Instead of using `worst`, consider using `-S +size,+br,+res,+fps` to get the smallest filesize while maintaining better control over quality.
+    </Info>
+  </Tab>
+  <Tab title="All Formats">
+    - `all` - Select all formats separately
+    - `mergeall` - Select and merge all formats (requires `--audio-multistreams` and/or `--video-multistreams`)
+
+    ```bash
+    # Download all available formats
+    yt-dlp -f all URL
+    ```
+  </Tab>
+</Tabs>
+
+## Format Selection by Preference
+
+Specify multiple formats in order of preference using slashes:
+
+```bash
+# Try format 22, then 17, then 18
+yt-dlp -f 22/17/18 URL
+
+# Try best mp4, otherwise best format
+yt-dlp -f "bv*[ext=mp4]+ba[ext=m4a]/b[ext=mp4] / bv*+ba/b" URL
+```
+
+### Downloading Multiple Formats
+
+Use commas to download several formats of the same video:
+
+```bash
+# Download formats 22, 17, and 18
+yt-dlp -f 22,17,18 URL
+
+# Download best video and best audio separately
+yt-dlp -f "bv,ba" -o "%(title)s.f%(format_id)s.%(ext)s" URL
+```
+
+### Merging Formats
+
+Merge video and audio using the `+` operator (requires ffmpeg):
+
+```bash
+# Merge best video-only and best audio-only formats
+yt-dlp -f "bestvideo+bestaudio" URL
+
+# Merge specific formats
+yt-dlp -f "136+140" URL
+```
+
+## Filtering Formats
+
+Filter formats by putting conditions in brackets:
+
+### Numeric Filters
+
+Available numeric fields with comparisons `<`, `<=`, `>`, `>=`, `=`, `!=`:
+
+- `filesize` - Number of bytes (if known)
+- `filesize_approx` - Estimated number of bytes
+- `width` - Video width
+- `height` - Video height
+- `tbr` - Total bitrate in kbps
+- `abr` - Audio bitrate in kbps
+- `vbr` - Video bitrate in kbps
+- `fps` - Frame rate
+- `audio_channels` - Number of audio channels
+
+<CodeGroup>
+```bash Example: Height Filter
+# Download best format with max 720p height
+yt-dlp -f "best[height<=720]" URL
+```
+
+```bash Example: Filesize Filter
+# Download only if filesize > 10MB
+yt-dlp -f "[filesize>10M]" URL
+```
+
+```bash Example: Bitrate Filter
+# Download video with bitrate > 500kbps, up to 720p
+yt-dlp -f "bv[height<=?720][tbr>500]" URL
+```
+</CodeGroup>
+
+<Note>
+The `?` after an operator includes formats where the value is unknown. For example, `[height<=?720]` includes videos up to 720p AND videos where height is not known.
+</Note>
+
+### String Filters
+
+Available string fields with comparisons `=`, `^=` (starts with), `$=` (ends with), `*=` (contains), `~=` (regex):
+
+- `ext` - File extension
+- `acodec` - Audio codec name
+- `vcodec` - Video codec name
+- `container` - Container format
+- `protocol` - Download protocol
+- `language` - Language code
+- `format_id` - Format identifier
+
+<CodeGroup>
+```bash Example: Codec Filter
+# Download h264 or h265 video
+yt-dlp -f "(bv*[vcodec~='^((he|a)vc|h26[45])']+ba) / (bv*+ba/b)" URL
+```
+
+```bash Example: Protocol Filter
+# Download via HTTP/HTTPS only
+yt-dlp -f "(bv*+ba/b)[protocol^=http][protocol!*=dash]" URL
+```
+
+```bash Example: Extension Filter
+# Download MP4 or WebM with height < 480p
+yt-dlp -f "(mp4,webm)[height<480]" URL
+```
+</CodeGroup>
+
+### Combining Filters
+
+Use parentheses to group filters:
+
+```bash
+# Complex filter example
+yt-dlp -f "((bv*[fps>30]/bv*)[height<=720]/(wv*[fps>30]/wv*)) + ba" URL
+```
+
+## Sorting Formats
+
+Change quality criteria using `-S` (`--format-sort`):
+
+### Available Sort Fields
+
+- `quality` - Quality of the format
+- `res` - Video resolution (smallest dimension)
+- `fps` - Frame rate
+- `hdr` - Dynamic range (`DV` > `HDR12` > `HDR10+` > `HDR10` > `HLG` > `SDR`)
+- `codec` - Video/audio codec preference
+- `size` - Filesize (exact or approximate)
+- `br` - Bitrate (total/video/audio)
+- `asr` - Audio sample rate
+- `proto` - Protocol preference
+- `ext` - File extension preference
+- `lang` - Language preference
+
+<Tabs>
+  <Tab title="Resolution">
+    ```bash
+    # Download with smallest resolution
+    yt-dlp -S "+res" URL
+
+    # Prefer <= 720p, but no larger
+    yt-dlp -S "res:720" URL
+
+    # Prefer closest to 480p
+    yt-dlp -S "res~480" URL
+    ```
+  </Tab>
+  <Tab title="Filesize">
+    ```bash
+    # Download smallest file
+    yt-dlp -S "+size,+br" URL
+
+    # Prefer closest to 50MB
+    yt-dlp -f "b" -S "filesize~50M" URL
+
+    # Largest file under 50MB
+    yt-dlp -f "b" -S "filesize:50M" URL
+    ```
+  </Tab>
+  <Tab title="Codec">
+    ```bash
+    # Prefer h264 video codec
+    yt-dlp -S "codec:h264" URL
+
+    # Prefer h264 video and m4a audio
+    yt-dlp -S "+codec:avc:m4a" URL
+
+    # Best extension (mp4 > mov > webm...)
+    yt-dlp -S "ext" URL
+    ```
+  </Tab>
+  <Tab title="Protocol">
+    ```bash
+    # Prefer HTTPS over other protocols
+    yt-dlp -S "proto" URL
+
+    # Combined sort: resolution, then fps, then codec
+    yt-dlp -S "res:720,fps,codec" URL
+    ```
+  </Tab>
+</Tabs>
+
+### Sort Order
+
+- Fields are sorted in **descending** order by default
+- Prefix with `+` to reverse to ascending order
+- Suffix with `:VALUE` to prefer values up to that limit
+- Suffix with `~VALUE` to prefer values closest to that limit
+
+```bash
+# Prefer larger videos but no bigger than 720p
+yt-dlp -S "res:720" URL
+
+# Prefer smallest resolution
+yt-dlp -S "+res" URL
+```
+
+## Practical Examples
+
+<CodeGroup>
+```bash Best Quality Download
+# Download and merge best video + best audio
+yt-dlp -f "bv+ba/b" URL
+
+# Or simply (default behavior)
+yt-dlp URL
+```
+
+```bash 720p Maximum
+# Best quality up to 720p
+yt-dlp -S "height:720" URL
+
+# Alternative using filters
+yt-dlp -f "bv*[height<=720]+ba/b[height<=720] / wv*+ba/w" URL
+```
+
+```bash Audio Only
+# Extract best audio
+yt-dlp -f "ba" -x --audio-format mp3 URL
+
+# Using preset alias
+yt-dlp -t mp3 URL
+```
+
+```bash Smallest File
+# Download smallest video
+yt-dlp -S "+size,+br,+res,+fps" URL
+
+# Best quality under 50MB
+yt-dlp -f "b[filesize<50M] / w" URL
+```
+
+```bash Specific Codec
+# Prefer h264 video, fallback to any
+yt-dlp -f "bv*[vcodec~='^(avc|h264)']+ba / bv*+ba" URL
+
+# Sort by codec preference
+yt-dlp -S "codec:h264" URL
+```
+
+```bash Multiple Audio Streams
+# Download video with 2 best audio tracks
+yt-dlp -f "bv*+ba+ba.2" --audio-multistreams URL
+```
+</CodeGroup>
+
+## Interactive Selection
+
+Use `-f -` to interactively choose the format for each video:
+
+```bash
+yt-dlp -f - URL
+```
+
+## Common Patterns
+
+### YouTube Best Quality
+```bash
+# Default (recommended)
+yt-dlp URL
+
+# Explicit format selection
+yt-dlp -f "bv*+ba/b" URL
+```
+
+### Save Bandwidth
+```bash
+# 480p or lower
+yt-dlp -S "res:480" URL
+
+# Smallest possible file
+yt-dlp -S "+size" URL
+```
+
+### Archive Quality
+```bash
+# Best available, prefer free formats
+yt-dlp --prefer-free-formats -S "ext" URL
+
+# Best with specific codec
+yt-dlp -S "vcodec:h265,acodec:opus" URL
+```

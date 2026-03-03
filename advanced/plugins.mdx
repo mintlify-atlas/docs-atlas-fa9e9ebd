@@ -1,0 +1,224 @@
+---
+title: Plugin System
+description: Learn how to install and develop plugins for yt-dlp
+---
+
+yt-dlp supports a plugin system that allows you to extend its functionality by adding custom extractors and postprocessors without modifying the core codebase.
+
+## Plugin Structure
+
+Plugins are installed in a `yt_dlp_plugins` namespace package. The plugin system searches for these packages in multiple locations and loads them automatically.
+
+### Package Structure
+
+```
+mypluginpkg/
+└── yt_dlp_plugins/
+    ├── extractor/
+    │   └── myplugin.py
+    └── postprocessor/
+        └── myplugin.py
+```
+
+<Note>
+yt-dlp looks for `yt_dlp_plugins` namespace folders in many locations and loads plugins from **all** of them.
+</Note>
+
+## Installing Plugins
+
+Plugins can be installed using various methods and locations.
+
+### 1. Configuration Directories
+
+Plugin packages can be dropped into standard configuration locations:
+
+#### User Plugins
+
+<CodeGroup>
+```bash Linux/macOS (recommended)
+${XDG_CONFIG_HOME}/yt-dlp/plugins/<package name>/yt_dlp_plugins/
+${XDG_CONFIG_HOME}/yt-dlp-plugins/<package name>/yt_dlp_plugins/
+```
+
+```bash Windows (recommended)
+${APPDATA}/yt-dlp/plugins/<package name>/yt_dlp_plugins/
+${APPDATA}/yt-dlp-plugins/<package name>/yt_dlp_plugins/
+```
+
+```bash Alternative
+~/.yt-dlp/plugins/<package name>/yt_dlp_plugins/
+~/yt-dlp-plugins/<package name>/yt_dlp_plugins/
+```
+</CodeGroup>
+
+#### System Plugins
+
+```bash
+/etc/yt-dlp/plugins/<package name>/yt_dlp_plugins/
+/etc/yt-dlp-plugins/<package name>/yt_dlp_plugins/
+```
+
+### 2. Executable Location
+
+For portable installations, plugin packages can be installed in a `yt-dlp-plugins` directory:
+
+<CodeGroup>
+```bash Binary Installation
+<root-dir>/yt-dlp.exe
+<root-dir>/yt-dlp-plugins/<package name>/yt_dlp_plugins/
+```
+
+```bash Source Installation
+<root-dir>/yt_dlp/__main__.py
+<root-dir>/yt-dlp-plugins/<package name>/yt_dlp_plugins/
+```
+</CodeGroup>
+
+### 3. pip and PYTHONPATH
+
+#### Install with pip
+
+Plugin packages can be installed and managed using `pip`:
+
+```bash
+pip install yt-dlp-sample-plugins
+```
+
+<Warning>
+Plugin files between plugin packages installed with pip must have unique filenames.
+</Warning>
+
+#### PYTHONPATH
+
+Any path in `PYTHONPATH` is searched for the `yt_dlp_plugins` namespace folder.
+
+<Note>
+This does not apply for PyInstaller builds.
+</Note>
+
+### 4. Archive Formats
+
+`.zip`, `.egg`, and `.whl` archives containing a `yt_dlp_plugins` namespace folder in their root are also supported:
+
+```bash
+${XDG_CONFIG_HOME}/yt-dlp/plugins/mypluginpkg.zip
+```
+
+Where `mypluginpkg.zip` contains:
+```
+yt_dlp_plugins/<type>/myplugin.py
+```
+
+### Verifying Plugin Installation
+
+Run yt-dlp with `--verbose` to check if the plugin has been loaded:
+
+```bash
+yt-dlp --verbose <url>
+```
+
+## Developing Plugins
+
+<Tip>
+See the [yt-dlp-sample-plugins](https://github.com/yt-dlp/yt-dlp-sample-plugins) repo for a template plugin package and the [Plugin Development](https://github.com/yt-dlp/yt-dlp/wiki/Plugin-Development) section of the wiki for a detailed development guide.
+</Tip>
+
+### Plugin Discovery
+
+All public classes with names ending in `IE` (extractors) or `PP` (postprocessors) are automatically imported from each file:
+
+- Underscore prefix indicates private classes (e.g., `_MyBasePluginIE`)
+- Respects `__all__` declarations
+- Modules can be excluded by prefixing the module name with an underscore (e.g., `_myplugin.py`)
+
+### Example Plugin Structure
+
+```python yt_dlp_plugins/extractor/myplugin.py
+from yt_dlp.extractor.common import InfoExtractor
+
+class MyPluginIE(InfoExtractor):
+    _VALID_URL = r'https?://(?:www\.)?example\.com/watch\?v=(?P<id>[0-9]+)'
+    
+    def _real_extract(self, url):
+        video_id = self._match_id(url)
+        # Extraction logic here
+        return {
+            'id': video_id,
+            'title': 'Video Title',
+            # ... other metadata
+        }
+```
+
+### Replacing Existing Extractors
+
+To replace an existing extractor with a subclass, set the `plugin_name` class keyword argument:
+
+```python
+class MyPluginIE(ABuiltInIE, plugin_name='myplugin'):
+    # Your custom implementation
+    pass
+```
+
+<Warning>
+Since the extractor replaces the parent, you should exclude the subclass extractor from being imported separately by making it private using underscore prefix or `__all__`.
+</Warning>
+
+### Plugin Class Loading
+
+From `yt_dlp/plugins.py:182-191`:
+
+```python
+def get_regular_classes(module, module_name, suffix):
+    # Find standard public plugin classes (not overrides)
+    return inspect.getmembers(module, lambda obj: (
+        inspect.isclass(obj)
+        and obj.__name__.endswith(suffix)
+        and obj.__module__.startswith(module_name)
+        and not obj.__name__.startswith('_')
+        and obj.__name__ in getattr(module, '__all__', [obj.__name__])
+        and getattr(obj, 'PLUGIN_NAME', None) is None
+    ))
+```
+
+## Disabling Plugins
+
+Set the environment variable `YTDLP_NO_PLUGINS` to disable loading plugins entirely:
+
+```bash
+export YTDLP_NO_PLUGINS=1
+yt-dlp <url>
+```
+
+## Plugin Directories
+
+You can specify custom plugin directories using the `--plugin-dirs` option:
+
+```bash
+yt-dlp --plugin-dirs /path/to/plugins <url>
+```
+
+To clear all plugin directories:
+
+```bash
+yt-dlp --no-plugin-dirs <url>
+```
+
+## Known Plugins
+
+See the [wiki for some known plugins](https://github.com/yt-dlp/yt-dlp/wiki/Plugins).
+
+<Tip>
+If you are a plugin author, add [yt-dlp-plugins](https://github.com/topics/yt-dlp-plugins) as a topic to your repository for discoverability.
+</Tip>
+
+## API Stability
+
+<Warning>
+Due to necessary changes and the complex nature involved, no backwards compatibility is guaranteed for the plugin system API. However, the maintainers will still try their best to maintain compatibility.
+</Warning>
+
+## Related Resources
+
+- [Plugin Development Guide](https://github.com/yt-dlp/yt-dlp/wiki/Plugin-Development)
+- [yt-dlp-sample-plugins Repository](https://github.com/yt-dlp/yt-dlp-sample-plugins)
+- [Developer Instructions](https://github.com/yt-dlp/yt-dlp/blob/master/CONTRIBUTING.md#developer-instructions)

@@ -1,0 +1,184 @@
+---
+title: Video Selection
+description: Filter and select which videos to download from playlists and channels
+---
+
+## Playlist Item Selection
+
+<ParamField path="-I, --playlist-items" type="string">
+  Comma-separated playlist_index of the items to download
+  
+  You can specify a range using `[START]:[STOP][:STEP]`. For backward compatibility, `START-STOP` is also supported.
+  
+  Use negative indices to count from the right and negative STEP to download in reverse order.
+  
+  **Example:**
+  ```bash
+  yt-dlp -I 1:3,7,-5::2 URL
+  # On a playlist of size 15, downloads items at index 1,2,3,7,11,13,15
+  ```
+</ParamField>
+
+## File Size Filters
+
+<ParamField path="--min-filesize" type="string">
+  Abort download if filesize is smaller than SIZE
+  
+  **Example:**
+  ```bash
+  yt-dlp --min-filesize 50k URL
+  yt-dlp --min-filesize 44.6M URL
+  ```
+</ParamField>
+
+<ParamField path="--max-filesize" type="string">
+  Abort download if filesize is larger than SIZE
+  
+  **Example:**
+  ```bash
+  yt-dlp --max-filesize 100M URL
+  ```
+</ParamField>
+
+## Date Filters
+
+<ParamField path="--date" type="string">
+  Download only videos uploaded on this date
+  
+  The date can be "YYYYMMDD" or in the format `[now|today|yesterday][-N[day|week|month|year]]`
+  
+  **Example:**
+  ```bash
+  yt-dlp --date 20230101 URL
+  yt-dlp --date today-2weeks URL
+  ```
+</ParamField>
+
+<ParamField path="--datebefore" type="string">
+  Download only videos uploaded on or before this date
+  
+  The date formats accepted are the same as `--date`
+  
+  **Example:**
+  ```bash
+  yt-dlp --datebefore 20230601 URL
+  ```
+</ParamField>
+
+<ParamField path="--dateafter" type="string">
+  Download only videos uploaded on or after this date
+  
+  The date formats accepted are the same as `--date`
+  
+  **Example:**
+  ```bash
+  yt-dlp --dateafter 20230101 URL
+  ```
+</ParamField>
+
+## Advanced Filters
+
+<ParamField path="--match-filters" type="string">
+  Generic video filter. Any "OUTPUT TEMPLATE" field can be compared with a number or a string using the operators defined in "Filtering Formats"
+  
+  You can:
+  - Specify a field to match if the field is present
+  - Use `!field` to check if the field is not present
+  - Use `&` to check multiple conditions
+  - Use `\` to escape `&` or quotes if needed
+  
+  If used multiple times, the filter matches if at least one of the conditions is met.
+  
+  Use `--match-filters -` to interactively ask whether to download each video.
+  
+  **Example:**
+  ```bash
+  yt-dlp --match-filters !is_live URL
+  yt-dlp --match-filters "like_count>?100 & description~='(?i)\\bcats \\& dogs\\b'" URL
+  # Matches videos that are not live OR have like count > 100 and contain "cats & dogs"
+  ```
+</ParamField>
+
+<ParamField path="--no-match-filters" type="flag" default="true">
+  Do not use any `--match-filters`
+</ParamField>
+
+<ParamField path="--break-match-filters" type="string">
+  Same as `--match-filters` but stops the download process when a video is rejected
+</ParamField>
+
+<ParamField path="--no-break-match-filters" type="flag" default="true">
+  Do not use any `--break-match-filters`
+</ParamField>
+
+## Playlist Handling
+
+<ParamField path="--no-playlist" type="flag">
+  Download only the video, if the URL refers to a video and a playlist
+</ParamField>
+
+<ParamField path="--yes-playlist" type="flag">
+  Download the playlist, if the URL refers to a video and a playlist
+</ParamField>
+
+## Age Restriction
+
+<ParamField path="--age-limit" type="number">
+  Download only videos suitable for the given age
+  
+  **Example:**
+  ```bash
+  yt-dlp --age-limit 18 URL
+  ```
+</ParamField>
+
+## Archive
+
+<ParamField path="--download-archive" type="string">
+  Download only videos not listed in the archive file. Record the IDs of all downloaded videos in it
+  
+  **Example:**
+  ```bash
+  yt-dlp --download-archive downloaded.txt URL
+  ```
+</ParamField>
+
+<ParamField path="--no-download-archive" type="flag" default="true">
+  Do not use archive file
+</ParamField>
+
+## Download Limits
+
+<ParamField path="--max-downloads" type="number">
+  Abort after downloading NUMBER files
+  
+  **Example:**
+  ```bash
+  yt-dlp --max-downloads 10 URL
+  ```
+</ParamField>
+
+<ParamField path="--break-on-existing" type="flag">
+  Stop the download process when encountering a file that is in the archive supplied with the `--download-archive` option
+</ParamField>
+
+<ParamField path="--no-break-on-existing" type="flag" default="true">
+  Do not stop the download process when encountering a file that is in the archive
+</ParamField>
+
+<ParamField path="--break-per-input" type="flag">
+  Alters `--max-downloads`, `--break-on-existing`, `--break-match-filters`, and autonumber to reset per input URL
+</ParamField>
+
+<ParamField path="--no-break-per-input" type="flag">
+  `--break-on-existing` and similar options terminates the entire download queue
+</ParamField>
+
+<ParamField path="--skip-playlist-after-errors" type="number">
+  Number of allowed failures until the rest of the playlist is skipped
+  
+  **Example:**
+  ```bash
+  yt-dlp --skip-playlist-after-errors 3 URL
+  ```
+</ParamField>

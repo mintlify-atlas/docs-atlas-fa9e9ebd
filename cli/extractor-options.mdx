@@ -1,0 +1,56 @@
+---
+title: Extractor Options
+description: Configure extractor behavior, retry settings, and extractor-specific arguments
+---
+
+## Retry Configuration
+
+<ParamField path="--extractor-retries" type="string" default="3">
+  Number of retries for known extractor errors, or "infinite"
+  
+  **Example:**
+  ```bash
+  yt-dlp --extractor-retries 10 URL
+  yt-dlp --extractor-retries infinite URL
+  ```
+</ParamField>
+
+## DASH Manifest Handling
+
+<ParamField path="--allow-dynamic-mpd" type="flag" default="true">
+  Process dynamic DASH manifests
+  
+  Alias: `--no-ignore-dynamic-mpd`
+</ParamField>
+
+<ParamField path="--ignore-dynamic-mpd" type="flag">
+  Do not process dynamic DASH manifests
+  
+  Alias: `--no-allow-dynamic-mpd`
+</ParamField>
+
+## HLS Playlist Handling
+
+<ParamField path="--hls-split-discontinuity" type="flag">
+  Split HLS playlists to different formats at discontinuities such as ad breaks
+</ParamField>
+
+<ParamField path="--no-hls-split-discontinuity" type="flag" default="true">
+  Do not split HLS playlists into different formats at discontinuities such as ad breaks
+</ParamField>
+
+## Extractor-Specific Arguments
+
+<ParamField path="--extractor-args" type="string">
+  Pass ARGS arguments to the IE_KEY extractor
+  
+  Format: `IE_KEY:ARGS`
+  
+  See "EXTRACTOR ARGUMENTS" for details. You can use this option multiple times to give arguments for different extractors.
+  
+  **Example:**
+  ```bash
+  yt-dlp --extractor-args "youtube:player_client=android" URL
+  yt-dlp --extractor-args "youtube:skip=hls,dash" URL
+  ```
+</ParamField>

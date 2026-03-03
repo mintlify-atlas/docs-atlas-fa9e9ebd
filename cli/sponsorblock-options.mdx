@@ -1,0 +1,91 @@
+---
+title: SponsorBlock Options
+description: Remove or mark sponsors, intros, outros and other segments using SponsorBlock API
+---
+
+Make chapter entries for, or remove various segments (sponsor, introductions, etc.) from downloaded YouTube videos using the [SponsorBlock API](https://sponsor.ajay.app)
+
+## Mark Segments
+
+<ParamField path="--sponsorblock-mark" type="string">
+  SponsorBlock categories to create chapters for, separated by commas
+  
+  Available categories:
+  - `sponsor` - Paid promotion
+  - `intro` - Intro/intermission
+  - `outro` - Outro/endcards
+  - `selfpromo` - Self promotion
+  - `preview` - Preview/recap
+  - `filler` - Filler tangent
+  - `interaction` - Interaction reminder
+  - `music_offtopic` - Off-topic music
+  - `hook` - Attention grabber
+  - `poi_highlight` - Point of interest highlight
+  - `chapter` - Chapter marker
+  - `all` - All categories
+  - `default` - Same as `all`
+  
+  You can prefix the category with a "-" to exclude it.
+  
+  See [SponsorBlock Wiki](https://wiki.sponsor.ajay.app/w/Segment_Categories) for descriptions of the categories.
+  
+  **Example:**
+  ```bash
+  yt-dlp --sponsorblock-mark all,-preview URL
+  yt-dlp --sponsorblock-mark "sponsor,intro,outro" URL
+  ```
+</ParamField>
+
+## Remove Segments
+
+<ParamField path="--sponsorblock-remove" type="string">
+  SponsorBlock categories to be removed from the video file, separated by commas
+  
+  If a category is present in both mark and remove, remove takes precedence.
+  
+  The syntax and available categories are the same as for `--sponsorblock-mark` except that:
+  - `default` refers to "all,-filler"
+  - `poi_highlight` and `chapter` are not available
+  
+  **Example:**
+  ```bash
+  yt-dlp --sponsorblock-remove sponsor,intro URL
+  yt-dlp --sponsorblock-remove default URL
+  ```
+</ParamField>
+
+## Chapter Title Template
+
+<ParamField path="--sponsorblock-chapter-title" type="string" default="[SponsorBlock]: %(category_names)l">
+  An output template for the title of the SponsorBlock chapters created by `--sponsorblock-mark`
+  
+  Available fields:
+  - `start_time` - Start time of the segment
+  - `end_time` - End time of the segment
+  - `category` - Category code
+  - `categories` - List of category codes
+  - `name` - Segment name
+  - `category_names` - List of category names
+  
+  **Example:**
+  ```bash
+  yt-dlp --sponsorblock-mark all --sponsorblock-chapter-title "[%(category)s]" URL
+  ```
+</ParamField>
+
+## Disable SponsorBlock
+
+<ParamField path="--no-sponsorblock" type="flag">
+  Disable both `--sponsorblock-mark` and `--sponsorblock-remove`
+</ParamField>
+
+## Custom API Location
+
+<ParamField path="--sponsorblock-api" type="string" default="https://sponsor.ajay.app">
+  SponsorBlock API location
+  
+  **Example:**
+  ```bash
+  yt-dlp --sponsorblock-api "https://sponsor.ajay.app" URL
+  ```
+</ParamField>

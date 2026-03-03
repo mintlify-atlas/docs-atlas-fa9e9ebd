@@ -1,0 +1,493 @@
+---
+title: Configuration Files
+description: Learn how to configure yt-dlp using configuration files to set default options and streamline your workflow
+---
+
+Configuration files allow you to set default options for yt-dlp without having to specify them on the command line every time. yt-dlp loads configuration from multiple locations in a specific order.
+
+## Configuration File Locations
+
+yt-dlp searches for configuration files in the following locations (in order of priority):
+
+### 1. Main Configuration
+
+The file specified with `--config-locations`:
+
+```bash
+yt-dlp --config-locations /path/to/custom/config URL
+
+# Read from stdin
+yt-dlp --config-locations - URL
+```
+
+### 2. Portable Configuration
+
+**Recommended for portable installations**
+
+If using a binary:
+- `yt-dlp.conf` in the same directory as the binary
+
+If running from source:
+- `yt-dlp.conf` in the parent directory of `yt_dlp`
+
+<Note>
+This is ideal for portable installations where you want the configuration to travel with the executable.
+</Note>
+
+### 3. Home Configuration
+
+- `yt-dlp.conf` in the home path given to `-P`
+- If `-P` is not given, the current directory is searched
+
+### 4. User Configuration
+
+<Tabs>
+  <Tab title="Linux/macOS">
+    **Recommended locations:**
+    - `${XDG_CONFIG_HOME}/yt-dlp/config`
+    - `${XDG_CONFIG_HOME}/yt-dlp.conf`
+    - `${XDG_CONFIG_HOME}/yt-dlp/config.txt`
+
+    **Fallback locations:**
+    - `~/.yt-dlp/config`
+    - `~/yt-dlp.conf`
+    - `~/yt-dlp.conf.txt`
+    - `~/.yt-dlp/config.txt`
+
+    <Info>
+    `${XDG_CONFIG_HOME}` defaults to `~/.config` if unset
+    </Info>
+  </Tab>
+  <Tab title="Windows">
+    **Recommended locations:**
+    - `${APPDATA}/yt-dlp/config`
+    - `${APPDATA}/yt-dlp.conf`
+    - `${APPDATA}/yt-dlp/config.txt`
+
+    **Fallback locations:**
+    - `~/yt-dlp.conf`
+    - `~/yt-dlp.conf.txt`
+    - `~/.yt-dlp/config`
+    - `~/.yt-dlp/config.txt`
+
+    <Info>
+    `${APPDATA}` typically points to `C:\Users\<username>\AppData\Roaming`
+    </Info>
+  </Tab>
+</Tabs>
+
+### 5. System Configuration
+
+**Linux/macOS only:**
+- `/etc/yt-dlp.conf`
+- `/etc/yt-dlp/config`
+- `/etc/yt-dlp/config.txt`
+
+<Note>
+If `--ignore-config` is found in the system configuration file, user configuration is not loaded (for backward compatibility).
+</Note>
+
+## Configuration File Syntax
+
+Configuration files use the same options as command line switches:
+
+### Basic Rules
+
+1. **One option per line**
+2. **No whitespace** after `-` or `--`
+3. **Comments** start with `#`
+4. **Quote values** when necessary (as in a shell)
+
+### Example Configuration
+
+<CodeGroup>
+```bash Basic Config
+# Lines starting with # are comments
+
+# Always extract audio
+-x
+
+# Copy the mtime
+--mtime
+
+# Use this proxy
+--proxy 127.0.0.1:3128
+
+# Save all videos under YouTube directory in your home
+-o ~/YouTube/%(title)s.%(ext)s
+```
+
+```bash Advanced Config
+# Video quality preferences
+-f bestvideo+bestaudio/best
+-S res:1080,fps:60
+
+# Output template
+-o "%(upload_date>%Y-%m-%d)s - [%(uploader)s] %(title)s [%(id)s].%(ext)s"
+
+# Subtitles
+--write-subs
+--sub-langs en,ja
+--embed-subs
+
+# Thumbnails
+--write-thumbnail
+--embed-thumbnail
+
+# Metadata
+--embed-metadata
+--embed-chapters
+
+# Archive
+--download-archive ~/.yt-dlp-archive.txt
+
+# Rate limiting
+--limit-rate 5M
+
+# Sponsorblock
+--sponsorblock-mark all
+```
+
+```bash Audio Extraction Config
+# Audio-only configuration
+
+# Extract audio
+-x
+
+# Format preference
+-f bestaudio/best
+
+# Convert to MP3
+--audio-format mp3
+--audio-quality 0
+
+# Embed metadata
+--embed-thumbnail
+--embed-metadata
+
+# Output template for music
+-o "%(artist|uploader)s/%(album|NA)s/%(track_number|)02d - %(title)s.%(ext)s"
+```
+</CodeGroup>
+
+## Configuration File Encoding
+
+Configuration files are decoded according to:
+
+1. **UTF BOM** if present
+2. **System locale** encoding otherwise
+
+### Specifying Encoding
+
+To force a specific encoding, add this as the **first line**:
+
+```bash
+# coding: ENCODING
+```
+
+Examples:
+```bash
+# coding: utf-8
+```
+
+```bash
+# coding: shift-jis
+```
+
+<Note>
+There must be **no characters** before the encoding declaration, not even spaces or BOM.
+</Note>
+
+## Ignoring Configuration Files
+
+Disable configuration file loading:
+
+```bash
+# Ignore all configuration files for this run
+yt-dlp --ignore-config URL
+
+# Alias
+yt-dlp --no-config URL
+```
+
+### Partial Ignore
+
+If `--ignore-config` is found **inside** a configuration file:
+- No further configuration files are loaded
+- Useful for preventing cascading configs
+
+### Exclude Specific Locations
+
+```bash
+# Don't load custom configs
+yt-dlp --no-config-locations URL
+```
+
+## Multiple Configuration Files
+
+Load additional configuration files:
+
+```bash
+# Load specific config file(s)
+yt-dlp --config-locations /path/to/config1 --config-locations /path/to/config2 URL
+
+# Can be used inside other config files
+# In config file:
+--config-locations /path/to/another/config
+```
+
+## Practical Configuration Examples
+
+### Default Quality Settings
+
+<CodeGroup>
+```bash ~/.config/yt-dlp/config
+# Video quality
+-f bestvideo[height<=1080]+bestaudio/best[height<=1080]
+
+# Prefer free formats
+--prefer-free-formats
+
+# Merge to mkv
+--merge-output-format mkv
+```
+
+```bash Audio Downloads
+# In ~/.config/yt-dlp/audio.conf
+-x
+--audio-format opus
+--audio-quality 0
+-o "~/Music/%(artist|uploader)s - %(title)s.%(ext)s"
+--embed-thumbnail
+--embed-metadata
+
+# Use with:
+# yt-dlp --config-locations ~/.config/yt-dlp/audio.conf URL
+```
+</CodeGroup>
+
+### Organization and Archiving
+
+```bash
+# Download archive (avoid re-downloading)
+--download-archive ~/.yt-dlp-archive.txt
+
+# Organized output
+-o "%(uploader)s/%(playlist|)s/%(upload_date>%Y-%m-%d)s - %(title)s [%(id)s].%(ext)s"
+
+# Write metadata files
+--write-info-json
+--write-description
+--write-thumbnail
+```
+
+### Performance and Reliability
+
+```bash
+# Concurrent downloads
+--concurrent-fragments 5
+
+# Retry configuration
+--retries 10
+--fragment-retries 10
+
+# Rate limiting (be nice to servers)
+--limit-rate 5M
+
+# Sleep between downloads
+--sleep-interval 3
+--max-sleep-interval 10
+```
+
+### Subtitle Preferences
+
+```bash
+# Download subtitles
+--write-subs
+--write-auto-subs
+
+# Languages (regex supported)
+--sub-langs "en.*,ja"
+
+# Embed in video
+--embed-subs
+
+# Convert format
+--convert-subs srt
+```
+
+### Post-Processing
+
+```bash
+# Embed metadata
+--embed-metadata
+--embed-thumbnail
+--embed-chapters
+
+# SponsorBlock integration
+--sponsorblock-mark all
+--sponsorblock-remove sponsor,intro,outro
+
+# Execute after download
+--exec "notify-send 'Download complete' '%(title)s'"
+```
+
+## Per-Site Configuration
+
+While yt-dlp doesn't have built-in per-site configs, you can use shell aliases:
+
+<CodeGroup>
+```bash Bash/Zsh (~/.bashrc or ~/.zshrc)
+alias yt-music='yt-dlp --config-locations ~/.config/yt-dlp/music.conf'
+alias yt-archive='yt-dlp --config-locations ~/.config/yt-dlp/archive.conf'
+alias yt-quick='yt-dlp -f worst'
+```
+
+```bash PowerShell (Profile)
+function yt-music { yt-dlp --config-locations ~/.config/yt-dlp/music.conf $args }
+function yt-archive { yt-dlp --config-locations ~/.config/yt-dlp/archive.conf $args }
+```
+</CodeGroup>
+
+## Environment Variables
+
+### Variable Syntax
+
+- **UNIX**: `${VARIABLE}` or `$VARIABLE`
+- **Windows**: `%VARIABLE%`
+- yt-dlp allows UNIX-style variables on Windows for path options
+
+### Common Variables
+
+<Tabs>
+  <Tab title="Linux/macOS">
+    - `${HOME}` - User home directory
+    - `${XDG_CONFIG_HOME}` - Config directory (defaults to `~/.config`)
+    - `${XDG_CACHE_HOME}` - Cache directory (defaults to `~/.cache`)
+  </Tab>
+  <Tab title="Windows">
+    - `${USERPROFILE}` - User profile directory (typically `C:\Users\<user>`)
+    - `${APPDATA}` - Application data directory (`${USERPROFILE}\AppData\Roaming`)
+    - `${HOME}` - Falls back to `${USERPROFILE}` or `${HOMEDRIVE}${HOMEPATH}`
+  </Tab>
+</Tabs>
+
+### Using Variables in Config
+
+```bash
+# Cross-platform paths
+-o "${HOME}/Videos/%(title)s.%(ext)s"
+
+# Cache directory
+--cache-dir "${XDG_CACHE_HOME}/yt-dlp"
+
+# Windows example
+-P "${USERPROFILE}\Downloads\YouTube"
+```
+
+## Debugging Configuration
+
+See which configuration files are loaded:
+
+```bash
+# Verbose output shows config loading
+yt-dlp --verbose URL
+
+# Output will include:
+# [debug] Command-line config: [...]
+# [debug] User config: [...]
+# [debug] Configuration loaded from: /path/to/config
+```
+
+## Best Practices
+
+<CodeGroup>
+```bash Minimal Config
+# ~/.config/yt-dlp/config
+# Keep it simple - only essentials
+
+-f bestvideo+bestaudio/best
+-o "~/Videos/%(title)s [%(id)s].%(ext)s"
+--download-archive ~/.yt-dlp-archive.txt
+```
+
+```bash Power User Config
+# ~/.config/yt-dlp/config
+# Advanced setup with all bells and whistles
+
+# Quality
+-f "bestvideo[height<=1080]+bestaudio/best[height<=1080]"
+-S "res:1080,fps,codec:h264:aac"
+
+# Output
+-o "%(uploader)s/%(playlist|)s%(playlist&/)s%(upload_date>%Y-%m-%d)s - %(title).200s [%(id)s].%(ext)s"
+-P "~/Videos/YouTube"
+
+# Metadata & Subs
+--embed-metadata
+--embed-thumbnail
+--embed-chapters
+--write-subs
+--sub-langs "en.*,ja"
+--embed-subs
+
+# Archive
+--download-archive ~/.yt-dlp-archive.txt
+--write-info-json
+
+# SponsorBlock
+--sponsorblock-mark all
+
+# Performance
+--concurrent-fragments 3
+--limit-rate 8M
+
+# Retry logic
+--retries 5
+--sleep-interval 1
+--max-sleep-interval 5
+```
+</CodeGroup>
+
+## Troubleshooting
+
+### Config Not Loading
+
+```bash
+# Check if config file exists
+ls -la ~/.config/yt-dlp/config
+
+# Verify with verbose mode
+yt-dlp --verbose URL 2>&1 | grep -i config
+
+# Test with explicit config location
+yt-dlp --config-locations ~/.config/yt-dlp/config URL
+```
+
+### Option Conflicts
+
+```bash
+# Command line options override config file
+yt-dlp -f worst URL  # Overrides config's format setting
+
+# Use --ignore-config to bypass all configs
+yt-dlp --ignore-config -f best URL
+```
+
+### Syntax Errors
+
+Common mistakes:
+
+```bash
+# ❌ WRONG - space after dash
+- o "~/Videos/%(title)s.%(ext)s"
+
+# ✅ CORRECT
+-o "~/Videos/%(title)s.%(ext)s"
+
+# ❌ WRONG - unquoted path with spaces
+-o ~/My Videos/%(title)s.%(ext)s
+
+# ✅ CORRECT
+-o "~/My Videos/%(title)s.%(ext)s"
+```

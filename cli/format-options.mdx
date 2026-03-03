@@ -1,0 +1,119 @@
+---
+title: Video Format Options
+description: Select and configure video/audio formats, quality, and container preferences
+---
+
+## Format Selection
+
+<ParamField path="-f, --format" type="string">
+  Video format code
+  
+  See "FORMAT SELECTION" for more details
+  
+  **Example:**
+  ```bash
+  yt-dlp -f "bestvideo+bestaudio" URL
+  yt-dlp -f "bestvideo[ext=mp4]+bestaudio[ext=m4a]/best[ext=mp4]" URL
+  yt-dlp -f 137+140 URL  # Specific format codes
+  ```
+</ParamField>
+
+<ParamField path="-S, --format-sort" type="string">
+  Sort the formats by the fields given
+  
+  See "Sorting Formats" for more details
+  
+  **Example:**
+  ```bash
+  yt-dlp -S "res,fps" URL
+  yt-dlp -S "quality,codec:h264" URL
+  ```
+</ParamField>
+
+<ParamField path="--format-sort-reset" type="flag">
+  Disregard previous user specified sort order and reset to the default
+</ParamField>
+
+<ParamField path="--format-sort-force" type="flag">
+  Force user specified sort order to have precedence over all fields
+  
+  See "Sorting Formats" for more details
+  
+  Alias: `--S-force`
+</ParamField>
+
+<ParamField path="--no-format-sort-force" type="flag" default="true">
+  Some fields have precedence over the user specified sort order
+</ParamField>
+
+## Multistream Options
+
+<ParamField path="--video-multistreams" type="flag">
+  Allow multiple video streams to be merged into a single file
+</ParamField>
+
+<ParamField path="--no-video-multistreams" type="flag" default="true">
+  Only one video stream is downloaded for each output file
+</ParamField>
+
+<ParamField path="--audio-multistreams" type="flag">
+  Allow multiple audio streams to be merged into a single file
+</ParamField>
+
+<ParamField path="--no-audio-multistreams" type="flag" default="true">
+  Only one audio stream is downloaded for each output file
+</ParamField>
+
+## Container Preferences
+
+<ParamField path="--prefer-free-formats" type="flag">
+  Prefer video formats with free containers over non-free ones of the same quality
+  
+  Use with "-S ext" to strictly prefer free containers irrespective of quality
+</ParamField>
+
+<ParamField path="--no-prefer-free-formats" type="flag" default="true">
+  Don't give any special preference to free containers
+</ParamField>
+
+## Format Checking
+
+<ParamField path="--check-formats" type="flag">
+  Make sure formats are selected only from those that are actually downloadable
+</ParamField>
+
+<ParamField path="--check-all-formats" type="flag">
+  Check all formats for whether they are actually downloadable
+</ParamField>
+
+<ParamField path="--no-check-formats" type="flag">
+  Do not check that the formats are actually downloadable
+</ParamField>
+
+## Format Listing
+
+<ParamField path="-F, --list-formats" type="flag">
+  List available formats of each video
+  
+  Simulate unless `--no-simulate` is used
+  
+  **Example:**
+  ```bash
+  yt-dlp -F URL
+  ```
+</ParamField>
+
+## Merge Output Format
+
+<ParamField path="--merge-output-format" type="string">
+  Containers that may be used when merging formats, separated by "/"
+  
+  Ignored if no merge is required.
+  
+  Currently supported: `avi`, `flv`, `mkv`, `mov`, `mp4`, `webm`
+  
+  **Example:**
+  ```bash
+  yt-dlp --merge-output-format "mp4/mkv" URL
+  ```
+</ParamField>
