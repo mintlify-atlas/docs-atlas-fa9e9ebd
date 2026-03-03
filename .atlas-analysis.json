@@ -1,0 +1,130 @@
+{
+  "projectType": "cli-tool",
+  "projectName": "yt-dlp",
+  "projectDescription": "A feature-rich command-line audio/video downloader with support for thousands of sites",
+  "theme": "aspen",
+  "primaryColor": "#FF0000",
+  "lightColor": "#FF6B6B",
+  "darkColor": "#CC0000",
+  "navigation": {
+    "tabs": [
+      {
+        "tab": "Documentation",
+        "groups": [
+          {
+            "group": "Getting Started",
+            "pages": [
+              "introduction",
+              "installation",
+              "quickstart"
+            ]
+          },
+          {
+            "group": "Core Concepts",
+            "pages": [
+              "core-concepts/format-selection",
+              "core-concepts/output-templates",
+              "core-concepts/configuration",
+              "core-concepts/authentication"
+            ]
+          },
+          {
+            "group": "Guides",
+            "pages": [
+              "guides/downloading-videos",
+              "guides/audio-extraction",
+              "guides/format-conversion",
+              "guides/metadata-modification",
+              "guides/post-processing",
+              "guides/sponsorblock",
+              "guides/playlists"
+            ]
+          },
+          {
+            "group": "Advanced",
+            "pages": [
+              "advanced/plugins",
+              "advanced/embedding",
+              "advanced/custom-extractors",
+              "advanced/workarounds"
+            ]
+          },
+          {
+            "group": "Reference",
+            "pages": [
+              "reference/supported-sites",
+              "reference/dependencies",
+              "reference/troubleshooting",
+              "reference/faq"
+            ]
+          }
+        ]
+      },
+      {
+        "tab": "CLI Reference",
+        "groups": [
+          {
+            "group": "Command Options",
+            "pages": [
+              "cli/general-options",
+              "cli/network-options",
+              "cli/video-selection",
+              "cli/download-options",
+              "cli/filesystem-options",
+              "cli/format-options",
+              "cli/subtitle-options",
+              "cli/authentication-options",
+              "cli/post-processing-options",
+              "cli/sponsorblock-options",
+              "cli/extractor-options"
+            ]
+          }
+        ]
+      },
+      {
+        "tab": "Python API",
+        "groups": [
+          {
+            "group": "API Reference",
+            "pages": [
+              "api/overview",
+              "api/youtubedl-class",
+              "api/extractors",
+              "api/post-processors",
+              "api/examples"
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  "keyFeatures": [
+    "Download videos from thousands of websites",
+    "Extract audio and convert formats",
+    "Advanced format selection and filtering",
+    "SponsorBlock integration for automatic sponsor removal",
+    "Plugin system for extensibility",
+    "Metadata extraction and embedding",
+    "Post-processing with FFmpeg",
+    "Playlist and channel download support",
+    "Authentication and geo-restriction bypass",
+    "Extensive configuration options"
+  ],
+  "publicApiSurface": [
+    "yt-dlp [OPTIONS] URL [URL...]",
+    "YoutubeDL class",
+    "gen_extractors()",
+    "list_extractors()",
+    "InfoExtractor base class",
+    "PostProcessor base class",
+    "FFmpegPostProcessor",
+    "Plugin system API",
+    "--format / -f",
+    "--extract-audio / -x",
+    "--output / -o",
+    "--write-subs",
+    "--embed-metadata",
+    "--sponsorblock-mark",
+    "--config-location"
+  ]
+}
