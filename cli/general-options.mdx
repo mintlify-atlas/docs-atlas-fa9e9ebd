@@ -252,3 +252,233 @@ description: Core yt-dlp options for help, updates, error handling, and configur
   yt-dlp -t mp3 URL
   ```
 </ParamField>
+
+## Verbosity and Simulation
+
+<ParamField path="-q, --quiet" type="flag">
+  Activate quiet mode
+  
+  If used with `--verbose`, print the log to stderr
+  
+  **Example:**
+  ```bash
+  yt-dlp -q URL
+  ```
+</ParamField>
+
+<ParamField path="--no-quiet" type="flag" default="true">
+  Deactivate quiet mode
+</ParamField>
+
+<ParamField path="--no-warnings" type="flag">
+  Ignore warnings
+</ParamField>
+
+<ParamField path="-s, --simulate" type="flag">
+  Do not download the video and do not write anything to disk
+  
+  **Example:**
+  ```bash
+  yt-dlp -s URL  # Just simulate, don't download
+  ```
+</ParamField>
+
+<ParamField path="--no-simulate" type="flag" default="true">
+  Download the video even if printing/listing options are used
+</ParamField>
+
+<ParamField path="--ignore-no-formats-error" type="flag">
+  Ignore "No video formats" error
+  
+  Useful for extracting metadata even if the videos are not actually available for download (experimental)
+</ParamField>
+
+<ParamField path="--no-ignore-no-formats-error" type="flag" default="true">
+  Throw error when no downloadable video formats are found
+</ParamField>
+
+<ParamField path="--skip-download" type="flag">
+  Do not download the video but write all related files
+  
+  Alias: `--no-download`
+</ParamField>
+
+<ParamField path="-O, --print" type="string">
+  Field name or output template to print to screen, optionally prefixed with when to print it, separated by a ":"
+  
+  Format: `[WHEN:]TEMPLATE`
+  
+  Supported values of "WHEN" are the same as that of `--use-postprocessor` (default: video). Implies `--quiet`. Implies `--simulate` unless `--no-simulate` or later stages of WHEN are used.
+  
+  This option can be used multiple times.
+  
+  **Example:**
+  ```bash
+  yt-dlp -O "%(title)s - %(uploader)s" URL
+  yt-dlp -O "after_move:filepath" URL
+  ```
+</ParamField>
+
+<ParamField path="--print-to-file" type="string">
+  Append given template to the file
+  
+  Format: `[WHEN:]TEMPLATE FILE`
+  
+  The values of WHEN and TEMPLATE are the same as that of `--print`. FILE uses the same syntax as the output template.
+  
+  This option can be used multiple times.
+  
+  **Example:**
+  ```bash
+  yt-dlp --print-to-file "%(title)s" titles.txt URL
+  ```
+</ParamField>
+
+<ParamField path="-j, --dump-json" type="flag">
+  Quiet, but print JSON information for each video
+  
+  Simulate unless `--no-simulate` is used. See "OUTPUT TEMPLATE" for a description of available keys.
+  
+  **Example:**
+  ```bash
+  yt-dlp -j URL
+  ```
+</ParamField>
+
+<ParamField path="-J, --dump-single-json" type="flag">
+  Quiet, but print JSON information for each URL or infojson passed
+  
+  Simulate unless `--no-simulate` is used. If the URL refers to a playlist, the whole playlist information is dumped in a single line.
+</ParamField>
+
+<ParamField path="--force-write-archive" type="flag">
+  Force download archive entries to be written as far as no errors occur, even if -s or another simulation option is used
+  
+  Alias: `--force-download-archive`
+</ParamField>
+
+<ParamField path="--newline" type="flag">
+  Output progress bar as new lines
+</ParamField>
+
+<ParamField path="--no-progress" type="flag">
+  Do not print progress bar
+</ParamField>
+
+<ParamField path="--progress" type="flag">
+  Show progress bar, even if in quiet mode
+</ParamField>
+
+<ParamField path="--console-title" type="flag">
+  Display progress in console titlebar
+</ParamField>
+
+<ParamField path="--progress-template" type="string">
+  Template for progress outputs, optionally prefixed by the TYPES
+  
+  Format: `[TYPES:]TEMPLATE`
+  
+  **Example:**
+  ```bash
+  yt-dlp --progress-template "download:%(progress.eta)s"
+  ```
+</ParamField>
+
+<ParamField path="-v, --verbose" type="flag">
+  Print various debugging information
+  
+  **Example:**
+  ```bash
+  yt-dlp -v URL
+  ```
+</ParamField>
+
+<ParamField path="--dump-pages" type="flag">
+  Print downloaded pages encoded using base64 to debug problems (very verbose)
+</ParamField>
+
+<ParamField path="--write-pages" type="flag">
+  Write downloaded intermediary pages to files in the current directory to debug problems
+</ParamField>
+
+<ParamField path="--print-traffic" type="flag">
+  Display sent and read HTTP traffic
+</ParamField>
+
+## Workarounds
+
+<ParamField path="--encoding" type="string">
+  Force the specified encoding (experimental)
+</ParamField>
+
+<ParamField path="--legacy-server-connect" type="flag">
+  Explicitly allow HTTPS connection to servers that do not support RFC 5746 secure renegotiation
+</ParamField>
+
+<ParamField path="--no-check-certificates" type="flag">
+  Suppress HTTPS certificate validation
+  
+  <Warning>
+  Use with caution - this disables security checks
+  </Warning>
+</ParamField>
+
+<ParamField path="--prefer-insecure" type="flag">
+  Use an unencrypted connection to retrieve information about the video
+  
+  Currently supported only for YouTube
+</ParamField>
+
+<ParamField path="--add-headers" type="string">
+  Specify a custom HTTP header and its value, separated by a colon ":"
+  
+  You can use this option multiple times.
+  
+  **Example:**
+  ```bash
+  yt-dlp --add-headers "Referer: https://example.com" URL
+  ```
+</ParamField>
+
+<ParamField path="--bidi-workaround" type="flag">
+  Work around terminals that lack bidirectional text support
+  
+  Requires bidiv or fribidi executable in PATH
+</ParamField>
+
+<ParamField path="--sleep-requests" type="number">
+  Number of seconds to sleep between requests during data extraction
+  
+  **Example:**
+  ```bash
+  yt-dlp --sleep-requests 1 URL
+  ```
+</ParamField>
+
+<ParamField path="--sleep-interval" type="number">
+  Number of seconds to sleep before each download
+  
+  This is the minimum time to sleep when used along with `--max-sleep-interval`
+  
+  Alias: `--min-sleep-interval`
+  
+  **Example:**
+  ```bash
+  yt-dlp --sleep-interval 5 URL
+  ```
+</ParamField>
+
+<ParamField path="--max-sleep-interval" type="number">
+  Maximum number of seconds to sleep
+  
+  Can only be used along with `--min-sleep-interval`
+  
+  **Example:**
+  ```bash
+  yt-dlp --sleep-interval 3 --max-sleep-interval 10 URL
+  ```
+</ParamField>
+
+<ParamField path="--sleep-subtitles" type="number">
+  Number of seconds to sleep before each subtitle download
+</ParamField>

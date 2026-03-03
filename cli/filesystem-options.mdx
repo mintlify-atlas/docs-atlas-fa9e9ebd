@@ -250,3 +250,65 @@ description: Configure output paths, filenames, file handling, metadata files, a
 <ParamField path="--rm-cache-dir" type="flag">
   Delete all filesystem cache files
 </ParamField>
+
+## Thumbnail Options
+
+<ParamField path="--write-thumbnail" type="flag">
+  Write thumbnail image to disk
+  
+  **Example:**
+  ```bash
+  yt-dlp --write-thumbnail URL
+  ```
+</ParamField>
+
+<ParamField path="--no-write-thumbnail" type="flag" default="true">
+  Do not write thumbnail image to disk
+</ParamField>
+
+<ParamField path="--write-all-thumbnails" type="flag">
+  Write all thumbnail image formats to disk
+  
+  **Example:**
+  ```bash
+  yt-dlp --write-all-thumbnails URL
+  ```
+</ParamField>
+
+<ParamField path="--list-thumbnails" type="flag">
+  List available thumbnails of each video
+  
+  Simulate unless `--no-simulate` is used
+  
+  **Example:**
+  ```bash
+  yt-dlp --list-thumbnails URL
+  ```
+</ParamField>
+
+## Internet Shortcut Options
+
+<ParamField path="--write-link" type="flag">
+  Write an internet shortcut file, depending on the current platform (.url, .webloc or .desktop)
+  
+  The URL may be cached by the OS
+  
+  **Example:**
+  ```bash
+  yt-dlp --write-link URL
+  ```
+</ParamField>
+
+<ParamField path="--write-url-link" type="flag">
+  Write a .url Windows internet shortcut
+  
+  The OS caches the URL based on the file path
+</ParamField>
+
+<ParamField path="--write-webloc-link" type="flag">
+  Write a .webloc macOS internet shortcut
+</ParamField>
+
+<ParamField path="--write-desktop-link" type="flag">
+  Write a .desktop Linux internet shortcut
+</ParamField>
